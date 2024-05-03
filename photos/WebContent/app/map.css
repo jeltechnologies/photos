@@ -1,0 +1,32 @@
+:root {
+	--foreground: #414141;
+	--accent: #FF6A5C;
+	--pale: #CCDFCB;
+	--grey: #f2f2f2;
+	--background: white;
+}
+
+#map-title {
+	font-size: large;
+	color: var(--accent);
+}
+
+#map {
+	z-index: 10;
+	height: 95%;
+	width: 97%;
+	position: fixed;
+	margin-top: 8px;
+	margin-bottom: 8px;
+	margin-left: 16px;
+	margin-right: 16px
+}
+
+.leaflet-popup-content p {
+	font-size: small;
+}
+
+.map-popup-image {
+	height: 300px;
+	width: auto;
+}

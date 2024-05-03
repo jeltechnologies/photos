@@ -1,0 +1,207 @@
+<taglib xmlns="https://jakarta.ee/xml/ns/jakartaee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-jsptaglibrary_3_0.xsd"
+	version="3.0">
+
+	<tlib-version>1.0</tlib-version>
+	<short-name>photos</short-name>
+
+	<tag>
+		<name>albumlist</name>
+		<tag-class>com.jeltechnologies.photos.tags.AlbumListTag</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>id</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>cssClass</name>
+			<required>false</required>
+		</attribute>
+	</tag>
+
+	<tag>
+		<name>timeline</name>
+		<tag-class>com.jeltechnologies.photos.timeline.TimelineTag</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>id</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>cssClass</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>operation</name>
+			<required>false</required>
+		</attribute>
+	</tag>
+
+	<tag>
+		<name>albumtitle</name>
+		<tag-class>com.jeltechnologies.photos.tags.AlbumTitleTag</tag-class>
+		<body-content>empty</body-content>
+	</tag>
+
+	<tag>
+		<name>coverphoto</name>
+		<tag-class>com.jeltechnologies.photos.tags.CoverPhoto</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>width</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>height</name>
+			<required>false</required>
+		</attribute>
+	</tag>
+
+	<tag>
+		<name>swiper-album</name>
+		<tag-class>com.jeltechnologies.photos.tags.PhotoGallerySwiper</tag-class>
+		<body-content>empty</body-content>
+	</tag>
+
+	<tag>
+		<name>frame-program-options</name>
+		<tag-class>com.jeltechnologies.photos.picures.frame.FrameProgramTag</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>cssClass</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>type</name>
+			<required>true</required>
+		</attribute>
+	</tag>
+
+	<tag>
+		<name>setalbumcover</name>
+		<tag-class>com.jeltechnologies.photos.tags.SetAlbumCoverTag</tag-class>
+		<body-content>empty</body-content>
+	</tag>
+
+	<tag>
+		<name>showorhidephoto</name>
+		<tag-class>com.jeltechnologies.photos.tags.ShowOrHidePhotoTag</tag-class>
+		<body-content>empty</body-content>
+	</tag>
+
+	<tag>
+		<name>showsharedlink</name>
+		<tag-class>com.jeltechnologies.photos.picures.share.ShowSharedLinkTag</tag-class>
+		<body-content>empty</body-content>
+	</tag>
+
+	<tag>
+		<name>editalbum</name>
+		<tag-class>com.jeltechnologies.photos.tags.EditAlbumTag</tag-class>
+		<body-content>empty</body-content>
+	</tag>
+
+	<tag>
+		<name>main-menu</name>
+		<tag-class>com.jeltechnologies.photos.tags.MainMenuTag</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>id</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>cssClass</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>selected</name>
+			<required>false</required>
+		</attribute>
+	</tag>
+
+	<tag>
+		<name>menu-albums</name>
+		<tag-class>com.jeltechnologies.photos.tags.MenuAlbumTag</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>id</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>cssClass</name>
+			<required>false</required>
+		</attribute>
+	</tag>
+
+	<tag>
+		<name>menu-new</name>
+		<tag-class>com.jeltechnologies.photos.tags.MenuNewTag</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>id</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>cssClass</name>
+			<required>false</required>
+		</attribute>
+	</tag>
+
+	<tag>
+		<name>menu-timeline</name>
+		<tag-class>com.jeltechnologies.photos.tags.MenuTimelineTag</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>id</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>cssClass</name>
+			<required>false</required>
+		</attribute>
+	</tag>
+
+	<tag>
+		<name>menu-sorting</name>
+		<tag-class>com.jeltechnologies.photos.tags.MenuSortingTag</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>id</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>cssClass</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>title</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>titleid</name>
+			<required>false</required>
+		</attribute>
+	</tag>
+
+	<tag>
+		<name>manage-photos</name>
+		<tag-class>com.jeltechnologies.photos.tags.ManagePhotosTag</tag-class>
+		<body-content>empty</body-content>
+	</tag>
+
+	<tag>
+		<name>albums-tree</name>
+		<tag-class>com.jeltechnologies.photos.tags.AlbumsTreeTag</tag-class>
+		<body-content>empty</body-content>
+		<attribute>
+			<name>id</name>
+			<required>true</required>
+		</attribute>
+		<attribute>
+			<name>defaultfolder</name>
+			<required>false</required>
+		</attribute>
+	</tag>
+
+</taglib>

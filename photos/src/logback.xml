@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<!-- Stop output INFO at start -->
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+    		<pattern>%.-1level %d{HH:mm:ss} [%-25.25t] %-25.25logger{0} - %msg%n</pattern>
+  		</encoder>
+    </appender> 
+    
+	<logger name="com.jeltechnologies.photos" level="info" additivity="false">
+		<appender-ref ref="CONSOLE" />
+	</logger> 
+	
+	<logger name="com.jeltechnologies.photos.picures.frame.FrameServlet" level="info" additivity="false">
+		<appender-ref ref="CONSOLE" />
+	</logger>  
+	
+	<logger name="com.jeltechnologies.photos.picures.frame.MoreLikeRequestHandler" level="info" additivity="false">
+		<appender-ref ref="CONSOLE" />
+	</logger> 
+	
+	<root level="error">
+		<appender-ref ref="CONSOLE" />
+	</root>
+
+</configuration>

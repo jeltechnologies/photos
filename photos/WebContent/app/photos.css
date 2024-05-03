@@ -1,0 +1,436 @@
+:root {
+	--foreground: #414141;
+	--accent: #FF6A5C;
+	--pale: #CCDFCB;
+	--grey: #f2f2f2;
+	--background: white;
+}
+
+/*    https://websitesetup.org/website-color-schemes/
+//    49. Elegant and Luxurious
+//    #0241AD, #301C05, #F4D47E, #FEFFFF */
+
+body {
+	font-family: sans-serif;
+	background-color: var(--background);
+	color: var(--foreground);
+}
+
+#map-album { 
+	height: 200px; 
+	width: 500px;
+	float: left;
+	margin-left: 8px;
+}
+
+.album-title {
+	color: var(--accent);
+	font-size: 150%;
+}
+
+.album-title a {
+	text-decoration: none;
+	color: var(--foreground);
+}
+
+#album-name-edit-input {
+	font-size: 150%
+}
+
+#album-name-edit button {
+	margin: 4px;
+}
+
+#album-name-sub {
+	float: left;
+	font-size: 150%;
+}
+
+#add-new-period h2 {
+	padding: 8px;
+	color: var(--accent);
+	font-weight: normal;
+}
+
+.add-new-image {
+	display: block;
+  	width: auto; 
+  	margin: auto;
+}
+
+.add-new-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  background: var(--grey);
+}
+
+.add-new-buttons button {
+	padding: 8px; 
+	margin: 8px;
+	width: 12em;
+	background:  var(--accent);
+	  color: white;
+}
+
+#result-modal {
+}
+
+.result-icon {
+	color: var(--pale);
+}
+
+
+.unselected-photo,.selected-photo {
+	background-color: var(--grey);
+	display: block;
+  	width: auto; 
+  	margin: auto;
+  	border: 4px;
+  	border: solid;
+}
+
+.unselected-photo {
+	border-color: var(--pale);
+} 
+
+.selected-photo {
+	border-color: var(--accent);
+}
+
+.video-icon {
+	position: absolute;
+	bottom: 8px;
+	left: 8px;
+	display: flex;
+	color: var(--background);
+}
+
+.video-time-label {
+	position: absolute;
+	bottom: 8px;
+	right: 8px;
+	display: flex;
+	color: var(--background);
+	font-size: small;
+}
+
+.backbtn {
+	background-color: var(--background);
+	color: var(--accent);
+	padding-right: 16px;
+	font-size: 150%;
+	border: none;
+	cursor: pointer;
+}
+
+.backbtn:hover, .backbtn:focus {
+	background-color: var(--background);
+}
+
+.gotoperiodbtn{
+	background-color: var(--background);
+	color: var(--foreground);
+	padding-right: 16px;
+	padding-left: 16px;
+	font-size: 100%;
+	border: none;
+	cursor: pointer;
+}
+
+.gotoperiodbtn:hover, .gotoperiodbtn:focus {
+	background-color: var(--background);
+}
+
+#top-bar {
+	margin-bottom: 16px;
+}
+
+#top-bar-left {
+	color: var(--accent);
+}
+
+#top-bar-center {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#top-bar-left, #top-bar-center, #top-bar-right {
+	display: inline-block;
+}
+
+.sitelogo {
+	padding-right: 32px;
+	max-height: 24px;
+}
+
+.view a {
+	color: grey;
+	text-decoration: none;
+}
+
+.view-selected a {
+	color: var(--accent);
+	text-decoration: none;
+}
+
+.view-selected, .view {
+	font-size: 150%;
+	padding-right: 32px;
+	display: inline-block;
+}
+
+.view-selected a {
+	text-decoration: overline;
+}
+
+#album-name-edit {
+	display: none;
+}
+
+button {
+	cursor: pointer;
+}
+
+/*
+DROPDOWN from https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_js_dropdown_hover
+*/
+.dropbtn {
+	background-color: var(--background);
+	color: var(--foreground);
+	padding: 16px;
+	font-size: 100%;
+	border: none;
+	cursor: pointer;
+	z-index: 10;
+}
+
+.dropbtn:hover, .dropbtn:focus {
+	background-color: var(--accent);
+}
+
+.dropdown {
+	font-size: 150%;
+	position: relative;
+	display: inline-block;
+}
+
+.dropdown-content {
+	display: none;
+	position: absolute;
+	background-color: var(--pale);
+	min-width: 250px;
+	overflow: auto;
+	box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+	z-index: 1;
+}
+
+.dropdown-content a {
+	color: var(--foreground);
+	padding: 12px 16px;
+	text-decoration: none;
+	display: block;
+}
+
+.dropdown a:hover {
+	background-color: var(--pale);
+}
+
+.dropdown-content a:hover {
+	background-color: var(--pale);
+}
+
+.dropdown:hover .dropdown-content {
+	display: block;
+}
+
+.dropdown:hover .dropbtn {
+	background-color: var(--pale);
+}
+
+.select-filter {
+	width: 125px;
+	margin-left: 16px;
+	border: 1px solid var(--foreground);
+	background-color: var(--background);
+	font-size: 100%;
+	color: var(--foreground);
+	border-radius: 5px;
+}
+
+.paging-navigation {
+	display: inline-block;
+	margin: auto;
+	margin: 16px;
+}
+
+.paging-navigation button {
+	width: auto;
+	margin-left: 4px;
+	display: inline;
+	color: var(--foreground);
+}
+
+.paging-navigation select {
+	width: auto;
+	padding: 0px;
+	margin-left: 4px;
+	display: inline;
+	color: var(--foreground);
+}
+
+.paging-in-center {
+	display: flex;
+	align-items: center;
+	justify-content: center
+}
+
+.leaflet-attribution-flag {
+	display: hidden;
+}
+
+.leaflet-popup {
+	width: 442px;
+}
+
+.image-map-popup {
+	display: block;
+	margin-left: auto;
+}
+
+.album ul {
+	display: flex;
+	flex-wrap: wrap;
+	list-style-type: none; /* Remove bullets */
+	padding: 0; /* Remove padding */
+	margin: 0; /* Remove margins */
+	justify-content: center;
+	gap: 10px;
+}
+
+.album li {
+	position: relative;
+	margin: 2px;
+	flex-grow: 1;
+	
+}
+
+.album li:last-child {
+	flex-grow: 10;
+}
+
+.image-cover-album {
+	float: left;
+	height: 200px;
+}
+
+.image-in-album, .image-in-add-new {
+  	min-width: 100%;
+	object-fit: cover;
+	vertical-align: bottom;
+	cursor: pointer;
+}
+.image-in-album {
+  	max-height: 200px;
+}
+
+.image-in-add-new {
+  	max-height: 360px;
+}
+
+.photo-title-container {
+	position: absolute;
+	width: 100%;
+	bottom: 0px;
+	left: 0;
+	/* center overlay text */
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: white;
+	cursor: pointer;
+	background: rgba(0, 0, 0, 0.2);
+}
+
+.add-new-title-container {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.photo-title {
+	font-size: 75%;
+	padding: 0.5em;
+	text-align: center;
+}
+
+/* iPhone [portrait + landscape] */
+@media only screen and (max-device-width: 480px) {
+	body {
+		background-color: var(--background);
+	}
+	.album-title {
+		font-size: 150%;
+	}
+	#album-name-edit-input {
+		font-size: 150%
+	}
+	#album-name-sub {
+		font-size: 150%;
+	}
+	.video-icon {
+		font-size: 150%;
+	}
+	.phototitle, .hiddentitle {
+		font-size: 150%;
+	}
+	.backbtn {
+		font-size: 150%;
+	}
+	.view-selected, .view {
+		font-size: 300%;
+	}
+	.button {
+		font-size: 150%;
+	}
+	.dropbtn {
+		font-size: 150%;
+	}
+	.dropdown {
+		font-size: 150%;
+	}
+	.select-filter {
+		font-size: 150%;
+		width: 150px;
+		margin-left: 4px;
+	}
+	.album li {
+		height: 300px;
+	}
+	.image-in-album {
+		max-height: 300px;
+		max-width: 100%;
+	}
+	.photo-title-container {
+		width: 100%;
+		background: rgba(0, 0, 0, 0.2);
+	}
+	.photo-title {
+		font-size: 150%;
+	}
+	.paging-navigation {
+		font-size: 150%;
+	}
+	.paging-navigation button {
+		font-size: 150%;
+	}
+	.paging-navigation select {
+		font-size: 150%;
+	}
+	.totalPages {
+		font-size: 150%;
+	}
+}
