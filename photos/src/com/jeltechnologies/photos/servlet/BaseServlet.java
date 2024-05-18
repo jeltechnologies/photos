@@ -58,7 +58,7 @@ public class BaseServlet extends HttpServlet {
 	if (LOGGER.isDebugEnabled()) {
 	    LOGGER.debug("JSON body: " + body);
 	}
-	Object result = JSONUtilsFactory.getInstance().fromJSON(body, Object.class);
+	Object result = JSONUtilsFactory.getInstance().fromJSON(body, clazz);
 	if (LOGGER.isTraceEnabled()) {
 	    LOGGER.trace("JSON object: " + result);
 	}

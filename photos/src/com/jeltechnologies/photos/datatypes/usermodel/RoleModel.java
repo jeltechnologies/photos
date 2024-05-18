@@ -58,6 +58,7 @@ public class RoleModel {
 	return user;
     }
 
+
     public static User getUser(PageContext pageContext) {
 	return getUser((HttpServletRequest) pageContext.getRequest());
     }

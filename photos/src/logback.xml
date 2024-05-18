@@ -12,7 +12,7 @@
 		<appender-ref ref="CONSOLE" />
 	</logger> 
 	
-	<logger name="com.jeltechnologies.photos.picures.frame.FrameServlet" level="info" additivity="false">
+	<logger name="com.jeltechnologies.photos.picures.share" level="trace" additivity="false">
 		<appender-ref ref="CONSOLE" />
 	</logger>  
 	

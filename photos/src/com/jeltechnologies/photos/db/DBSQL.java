@@ -39,14 +39,12 @@ public class DBSQL {
 	bc.append(" label TEXT,");
 	bc.append(" hidden BOOLEAN NOT NULL DEFAULT False,");
 	bc.append(" livephoto BOOLEAN NOT NULL DEFAULT False,");
-	
 	bc.append(" street TEXT,");
 	bc.append(" housenr TEXT,");
 	bc.append(" postalcode TEXT,");
 	bc.append(" city TEXT,");
 	bc.append(" countryCode TEXT,");
 	bc.append(" distance NUMERIC(20,16),");
-	
 	bc.append(" CONSTRAINT media_type_fk FOREIGN KEY(mediatype) REFERENCES mediatypes(type)");
 	bc.append(");");
 	return bc.toString();
@@ -55,10 +53,10 @@ public class DBSQL {
     private static String createFilesTable() {
 	StringBuilder f = new StringBuilder();
 	f.append("CREATE TABLE IF NOT EXISTS Files(");
-	f.append(" relativeFileName VARCHAR(500),");
+	f.append(" relativeFileName TEXT,");
 	f.append(" photos_id TEXT,");
-	f.append(" role VARCHAR(64) NOT NULL DEFAULT 'photos-user',");
-	f.append(" relativeFolderName VARCHAR(500),");
+	f.append(" role TEXT NOT NULL DEFAULT 'photos-user',");
+	f.append(" relativeFolderName TEXT,");
 	f.append(" fileName TEXT,");
 	f.append(" dateModified bigint,");
 	f.append(" size BIGINT,");
@@ -194,7 +192,7 @@ public class DBSQL {
 	StringBuilder ab = new StringBuilder();
 	ab.append("CREATE TABLE IF NOT EXISTS albums (");
 	ab.append(" relativeFolderName TEXT PRIMARY KEY,");
-	ab.append(" role VARCHAR(64) NOT NULL DEFAULT 'photos-user',");
+	ab.append(" role TEXT NOT NULL DEFAULT 'photos-user',");
 	ab.append(" name TEXT,");
 	ab.append(" cover_photo_id TEXT,");
 	ab.append(" CONSTRAINT privfk FOREIGN KEY(role) REFERENCES roles(role),");
@@ -258,7 +256,7 @@ public class DBSQL {
 	StringBuilder b = new StringBuilder();
 	b.append("CREATE TABLE IF NOT EXISTS mediatypes (");
 	b.append(" type CHAR(1) PRIMARY KEY,");
-	b.append(" name VARCHAR(32)");
+	b.append(" name TEXT");
 	b.append(");");
 	return b.toString();
     }
@@ -266,7 +264,7 @@ public class DBSQL {
     public static String createRoles() {
 	StringBuilder b = new StringBuilder();
 	b.append("CREATE TABLE IF NOT EXISTS roles(");
-	b.append(" role VARCHAR(64) PRIMARY KEY");
+	b.append(" role TEXT PRIMARY KEY");
 	b.append(");");
 	return b.toString();
     }
@@ -274,11 +272,12 @@ public class DBSQL {
     private static String createSharesTable() {
 	StringBuilder bc = new StringBuilder();
 	bc.append("CREATE TABLE IF NOT EXISTS shares (");
-	bc.append(" uuid VARCHAR(36) PRIMARY KEY,");
-	bc.append(" relativefileName TEXT NOT NULL,");
+	bc.append(" uuid TEXT PRIMARY KEY,");
+	bc.append(" photos_id TEXT NOT NULL,");
 	bc.append(" expirationdate TIMESTAMP NOT NULL,");
 	bc.append(" creationdate TIMESTAMP NOT NULL, ");
-	bc.append(" username VARCHAR(128) NOT NULL");
+	bc.append(" username TEXT NOT NULL,");
+	bc.append(" CONSTRAINT shares_fk_photos FOREIGN KEY(photos_id) REFERENCES photos(id) ON DELETE CASCADE ON UPDATE CASCADE");
 	bc.append(");");
 	return bc.toString();
     }
@@ -286,7 +285,7 @@ public class DBSQL {
     private static String createPreferencesTable() {
 	StringBuilder b = new StringBuilder();
 	b.append("CREATE TABLE IF NOT EXISTS preferences (");
-	b.append(" username VARCHAR(128) PRIMARY KEY,");
+	b.append(" username TEXT PRIMARY KEY,");
 	b.append(" preferences TEXT");
 	b.append(");");
 	return b.toString();

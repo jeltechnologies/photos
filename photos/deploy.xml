@@ -13,11 +13,11 @@
 	</target>
 
 	<target name="deploy" depends="mvn">
-		
-		<copy file="${build}/${webapp-name}-${version}.war" tofile="\\JJJ-HOBBY\Projects\Tomcat\webapps\${webapp-name}.war" />
 		<!--
-		<copy file="${build}/${webapp-name}-${version}.war" tofile="E:\tmp\${webapp-name}.war" />
+		<copy file="${build}/${webapp-name}-${version}.war" tofile="\\JJJ-HOBBY\Projects\Tomcat\webapps\${webapp-name}.war" />
 		-->
+		<copy file="${build}/${webapp-name}-${version}.war" tofile="C:\tmp\${webapp-name}.war" />
+		
 		
 	</target>
 

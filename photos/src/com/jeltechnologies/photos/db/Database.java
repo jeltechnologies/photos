@@ -129,6 +129,7 @@ public class Database implements QuerySupport {
 	executeSQL(DBSQL.CREATE_ALBUMS_TABLE);
 	executeSQL(DBSQL.CREATE_FILES_TABLE);
 	executeSQL(DBSQL.CREATE_PREFERENCES_TABLE);
+	executeSQL(DBSQL.CREATE_SHARES_TABLE);
 	for (String sql : DBSQL.getIndexesSQL()) {
 	    executeSQL(sql);
 	}
@@ -1208,7 +1209,7 @@ public class Database implements QuerySupport {
     }
 
     public SharedFile getSharedFile(String uuid) throws SQLException {
-	String sql = "SELECT uuid, relativefilename, expirationdate, creationdate, username FROM shares WHERE uuid = ?";
+	String sql = "SELECT uuid, photos_id, expirationdate, creationdate, username FROM shares WHERE uuid=?";
 	ResultSet rs = null;
 	try {
 	    PreparedStatement ps = getStatement(sql);
@@ -1216,12 +1217,9 @@ public class Database implements QuerySupport {
 	    rs = ps.executeQuery();
 	    SharedFile sharedFile = null;
 	    if (rs.next()) {
-		sharedFile = new SharedFile();
-		sharedFile.setUuid(rs.getString(1));
-		sharedFile.setRelativeFileName(rs.getString(2));
-		sharedFile.setExpirationDate(DBUtils.getDateTime(rs, 3));
-		sharedFile.setCreationDate(DBUtils.getDateTime(rs, 4));
-		sharedFile.setUsername(rs.getString(5));
+		LocalDateTime expirationDate = DBUtils.getDateTime(rs, 3);
+		LocalDateTime creationDate = DBUtils.getDateTime(rs, 4);
+		sharedFile = new SharedFile(rs.getString(1), rs.getString(2), expirationDate, creationDate, rs.getString(5));
 	    }
 	    return sharedFile;
 	} finally {
@@ -1232,13 +1230,13 @@ public class Database implements QuerySupport {
     }
 
     public void addSharedFile(SharedFile sharedFile) throws SQLException {
-	String sql = "INSERT INTO shares (uuid, relativefilename, expirationdate, creationdate, username) VALUES (?,?,?,?,?);";
+	String sql = "INSERT INTO shares (uuid, photos_id, expirationdate, creationdate, username) VALUES (?,?,?,?,?);";
 	PreparedStatement ps = getStatement(sql);
-	ps.setString(1, sharedFile.getUuid());
-	ps.setString(2, sharedFile.getRelativeFileName());
-	DBUtils.setTimestamp(ps, 3, sharedFile.getExpirationDate());
-	DBUtils.setTimestamp(ps, 4, sharedFile.getCreationDate());
-	ps.setString(5, sharedFile.getUsername());
+	ps.setString(1, sharedFile.uuid());
+	ps.setString(2, sharedFile.photoId());
+	DBUtils.setTimestamp(ps, 4, sharedFile.expirationDate());
+	DBUtils.setTimestamp(ps, 3, sharedFile.creationDate());
+	ps.setString(5, sharedFile.username());
 	ps.executeUpdate();
     }
 

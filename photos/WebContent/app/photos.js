@@ -61,47 +61,56 @@ function getTranslationForWeek() {
 	return translation;
 }
 
-function doAjax(url, method, callbackFunction) {
-	// alert("getJson");
+function getJson(url, callbackFunction) {
 	$.ajax({
 		url: url,
-		dataType: 'json',
-		type: method
-	}).done(function(data) {
-		//console.log("AJAX done");
-		callbackFunction(data);
-	}).fail(function() {
-		console.log("Ajax failed to fetch data for url " + url);
-		alert("Error sending AJAX " + method + " request for url " + url);
-	})
+		type: 'GET',
+		contentType: "application/json",
+		error: function(xhr) {
+			console.log("An error occured: " + xhr.status + " " + xhr.statusText);
+		},
+		success: function(result) {
+			callbackFunction(result);
+		}
+	});
 }
 
-function doAjaxWithData(url, method, dataToSend, callbackSuccessFunction, callbackErrorFunction) {
+function postJson(url, dataToSend, callbackFunction) {
 	$.ajax({
 		url: url,
-		type: method,
+		type: 'POST',
 		data: JSON.stringify(dataToSend),
 		contentType: "application/json",
-	})
-		.done(callbackSuccessFunction)
-		.fail(ajaxError);
+		error: function(xhr) {
+			console.log("An error occured: " + xhr.status + " " + xhr.statusText);
+		},
+		success: callbackFunction
+	});
 }
 
-function ajaxError(jqXHR, textStatus, errorThrown) {
-	alert("Ajax error");
+function putJson(url, dataToSend, callbackFunction) {
+	$.ajax({
+		url: url,
+		type: 'PUT',
+		data: JSON.stringify(dataToSend),
+		contentType: "application/json",
+		error: function(xhr) {
+			console.log("An error occured: " + xhr.status + " " + xhr.statusText);
+		},
+		success: callbackFunction
+	});
 }
 
-function getJson(url, callbackFunction) {
-	//console.log("getJSON: " + url);
-	doAjax(url, 'GET', callbackFunction);
-}
-
-function postJson(url, data, callbackFunction, callbackErrorFunction = "ajaxError") {
-	doAjaxWithData(url, 'POST', data, callbackFunction, callbackErrorFunction);
-}
-
-function deleteJson(url, data, callbackFunction, callbackErrorFunction = "ajaxError") {
-	doAjaxWithData(url, 'DELETE', data, callbackFunction, callbackErrorFunction);
+function deleteJson(url, callbackFunction) {
+	$.ajax({
+		url: url,
+		type: 'DELETE',
+		contentType: "application/json",
+		error: function(xhr) {
+			console.log("An error occured: " + xhr.status + " " + xhr.statusText);
+		},
+		complete: callbackFunction
+	});
 }
 
 function openModalWebPage(modal, webPageUrl) {

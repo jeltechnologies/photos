@@ -78,45 +78,41 @@ function showOptions() {
 
 function shareClicked() {
 	let photo = photos[swiper.realIndex];
-	let fileName = photo.id;
-	let size;
+	let quality;
 	if (photo.type === "PHOTO") {
-		size = "original";
+		quality = "original";
 	} else {
-		size = "medium";
+		quality = "medium";
 	}
-	fileName = fileName + "-size-" + size
-	if (photo.type === "PHOTO") {
-		fileName = fileName + ".jpg";
-		type = "image/jpeg";
-	} else {
-		fileName = fileName + ".mp4";
-		type = "video/mp4";
-	}
-	let fileToDownload = "download/" + fileName;
-	console.log(fileToDownload);
-	shareImage(fileToDownload, type);
+	let postBody = {};
+	postBody.id = photo.id;
+	postBody.quality = quality;
+
+	postJson("share", postBody, shareImage)
+	
+	//shareImage(fileToDownload, type);
 }
 
-async function shareImage(imageUrl, type) {
-	console.log("shareImage " + imageUrl);
-	let index = imageUrl.lastIndexOf("/");
-	let fileName = imageUrl.substring(index + 1);
-	console.log("Trying to get the blob: " + fileName);
+async function shareImage(data) {
+	console.log(data);
+	let imageUrl = data.url;
+	let fileName = data.fileName;
+	let mimeType = data.mimeType;
+	//alert("Trying to get the blob: " + imageUrl + " with fileName: " + fileName + ", mimeType: " + mimeType);
 	const response = await fetch(imageUrl);
 	const blob = await response.blob();
 	//alert("Recevied the blob");
 	const filesArray = [
 		new File([blob], fileName,
 			{
-				type: type,
+				type: mimeType,
 				lastModified: new Date().getTime()
 			}
 		)];
 	const shareData = {
 		files: filesArray,
 	};
-	console.log(shareData);
+	//alert("Trying navigator share");
 	navigator.share(shareData);
 }
 
