@@ -89,7 +89,7 @@ public class BackgroundServices {
 	    } else {
 		LOGGER.warn("Configured to not start background services");
 	    }
-	    scheduleUpdateTimelineCache();
+	    //scheduleUpdateTimelineCache();
 	}
     }
 
@@ -277,6 +277,7 @@ public class BackgroundServices {
 	threadService.scheduleOnce(new UpdateCacheJob(this), delay, timeUnit);
     }
 
+    @SuppressWarnings("unused")
     private void scheduleUpdateTimelineCache() {
 	Runnable task = new UpdateCacheJob(this);
 	threadService.scheduleAtFixedRate(task, 7, 7, TimeUnit.DAYS);

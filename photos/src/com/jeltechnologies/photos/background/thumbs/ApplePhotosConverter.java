@@ -16,7 +16,7 @@ public class ApplePhotosConverter {
     private final File heicFile;
     private final File convertedFile;
 
-    // private final boolean USES_IMAGEMICK_EXE = ENV.getConfig().getImageMagickExecutable().toString().toLowerCase().endsWith(".exe");
+    private final boolean USES_IMAGEMICK_EXE = ENV.getConfig().getImageMagickExecutable().toString().toLowerCase().endsWith(".exe");
 
     public ApplePhotosConverter(File heic) {
 	this.heicFile = heic;
@@ -37,23 +37,15 @@ public class ApplePhotosConverter {
 
     private void convert() throws IOException, InterruptedException {
 	File exe = ENV.getConfig().getImageMagickExecutable();
-	if (exe.getName().endsWith("magick.exe")) {
-	    OperatingSystemCommand command = new OperatingSystemCommand(exe);
+	OperatingSystemCommand command = new OperatingSystemCommand(exe);
+	// In Windows we execute magick.exe and we need to add mogrify as argument.
+	// In Linux we use mogrify as executable and do not use mogrify as argument.
+	if (USES_IMAGEMICK_EXE) {
 	    command.addArgument("mogrify");
-	    command.addArgument("-format");
-	    command.addArgument("jpg");
-	    command.addArgument(heicFile.getAbsolutePath());
-	    command.execute();
-	} else {
-	    if (exe.getName().endsWith("heif-convert")) { 
-		// Mint Linux 
-		// https://7.dev/converting-heic-to-jpg-using-the-command-line/
-		OperatingSystemCommand command = new OperatingSystemCommand(exe);
-		command.addArgument(heicFile.getAbsolutePath());
-		command.addArgument(convertedFile.getAbsolutePath());
-		command.execute();
-	    }
 	}
-	
+	command.addArgument("-format");
+	command.addArgument("jpg");
+	command.addArgument(heicFile.getAbsolutePath());
+	command.execute();
     }
 }

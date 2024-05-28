@@ -383,7 +383,7 @@ public class Database implements QuerySupport {
     private StringBuilder getRestrictionsForUser(User user, String tableAlias) {
 	StringBuilder wb = new StringBuilder();
 	List<Role> roles = user.roles();
-	if (roles != null && !roles.isEmpty()) {
+	if (roles != null && !roles.isEmpty() && !user.isAdmin()) {
 	    int roleCount = 0;
 	    wb.append("(");
 	    for (Role role : user.roles()) {
@@ -438,7 +438,7 @@ public class Database implements QuerySupport {
 	    whereParts.add("p.id=?");
 	}
 
-	boolean userHasRoles = user.roles() != null && !user.roles().isEmpty();
+	boolean userHasRoles = user.roles() != null && !user.roles().isEmpty() && !user.isAdmin();
 	if (userHasRoles) {
 	    paramRoles = paraPos + 1;
 	    StringBuilder wb = new StringBuilder("(");

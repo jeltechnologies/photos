@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import com.jeltechnologies.photos.Environment;
 import com.jeltechnologies.photos.background.BackgroundServices;
-import com.jeltechnologies.photos.datatypes.usermodel.RoleModel;
 import com.jeltechnologies.photos.datatypes.usermodel.User;
 import com.jeltechnologies.photos.db.Database;
 import com.jeltechnologies.photos.pictures.MediaFile;
@@ -42,7 +41,7 @@ public abstract class AbstractConsumer implements Runnable {
     private final static LocalDateTime EARLIEST_POSSIBLE = LocalDateTime.of(1900, 1, 1, 0, 0);
 
     private final static boolean FORCE_LOCATION_UPDATE = false;
-    
+
     private final static boolean LOCATION_SERVICE_CONFIGURED = ENV.getConfig().isGeoServicesConfigured();
 
     private final MediaQueue queue;
@@ -204,7 +203,7 @@ public abstract class AbstractConsumer implements Runnable {
 		photo = new Photo(id, getMediaType());
 		beforeChange = null;
 	    } else {
-		beforeChange = getDatabase().getFirstPhotoById(RoleModel.getSystemAdmin(), id);
+		beforeChange = getDatabase().getPhotoById(id);
 	    }
 	    updateFileInPhoto();
 	    if (cacheFolderOK()) {
@@ -215,12 +214,13 @@ public abstract class AbstractConsumer implements Runnable {
 		    getDatabase().createPhoto(photo);
 		    cacheMustBeCleared = true;
 		} else {
-		    if (!beforeChange.hasSameMetaData(photo)) {
+		    if (beforeChange == null || !beforeChange.hasSameMetaData(photo)) {
 			if (LOGGER.isDebugEnabled()) {
 			    LOGGER.debug("Before: " + beforeChange.toString());
 			    LOGGER.debug("After : " + photo.toString());
 			    LOGGER.debug("Updating changed photo in database " + photo.getRelativeFileName());
 			}
+			
 			getDatabase().updatePhoto(photo);
 			cacheMustBeCleared = true;
 		    } else {
