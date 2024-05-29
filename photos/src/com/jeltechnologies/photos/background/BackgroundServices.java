@@ -84,7 +84,7 @@ public class BackgroundServices {
 		startConsumers();
 		scheduleProducers();
 		scheduleHousekeeping();
-		// startSFTPServer();
+		startSFTPServer();
 		scheduleSFTPClients();
 	    } else {
 		LOGGER.warn("Configured to not start background services");
