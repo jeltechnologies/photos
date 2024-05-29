@@ -139,13 +139,9 @@ public abstract class AbstractConsumer implements Runnable {
 		locationServiceAvailable.set(false);
 		scheduleEnablingLocationService(1, TimeUnit.HOURS);
 	    } catch (Throwable t) {
-		String errorMessage = "Error " + currentFilePath;
-		if (photo != null) {
-		    errorMessage = errorMessage + " id: " + photo.getId() + " ";
-		}
-		errorMessage = queuedMediaFile.getFile().getName() + " error " + t.getMessage();
+		String errorMessage = queuedMediaFile.getFile().getName() + " error " + t.getMessage();
 		if (LOGGER.isInfoEnabled()) {
-		    LOGGER.info(errorMessage, t);
+		    LOGGER.info(errorMessage);
 		} else {
 		    LOGGER.warn(errorMessage, t);
 		}
