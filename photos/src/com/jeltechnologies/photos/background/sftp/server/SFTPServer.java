@@ -65,6 +65,7 @@ public class SFTPServer {
 	SftpSubsystemFactory sftpSubsystemFactory = new SftpSubsystemFactory();
 	sshd.setSubsystemFactories(Collections.singletonList(sftpSubsystemFactory));
 	sshd.setPasswordAuthenticator((username, password, session) -> username.equals(this.user) && password.equals(this.password));
+	
 	sftpSubsystemFactory.addSftpEventListener(eventListener);
 	sshd.start();
 	started = true;

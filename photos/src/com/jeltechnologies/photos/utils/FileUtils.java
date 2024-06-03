@@ -279,11 +279,14 @@ public class FileUtils {
 	if (LOGGER.isTraceEnabled()) {
 	    LOGGER.trace("writeBinaryFile " + filePath);
 	}
-	File fileTo = new File(filePath);
+	writeBinaryFile(new File(filePath), data);
+    }
+    
+    public static void writeBinaryFile(File fileTo, byte[] data) throws IOException {
 	if (fileTo.isFile()) {
-	    LOGGER.info("File already exist on disk, writing is skipped for file [" + filePath + "]");
+	    LOGGER.info("File already exist on disk, writing is skipped for file [" + fileTo + "]");
 	} else {
-	    makeFolderToStoreFileIfNeeded(filePath);
+	    makeFolderToStoreFileIfNeeded(fileTo.getAbsolutePath());
 	    FileOutputStream out = null;
 	    try {
 		out = new FileOutputStream(fileTo);
