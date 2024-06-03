@@ -13,7 +13,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.jeltechnologies.photos.config.yaml.HandbrakeConfiguration;
 import com.jeltechnologies.photos.config.yaml.RefreshConfiguration;
 import com.jeltechnologies.photos.config.yaml.SFTPClientAccount;
-import com.jeltechnologies.photos.config.yaml.SFTPServerAccount;
+import com.jeltechnologies.photos.config.yaml.SFTPServerConfig;
 import com.jeltechnologies.photos.config.yaml.SpecialDaysProgramsConfiguration;
 import com.jeltechnologies.photos.config.yaml.YamlConfiguration;
 
@@ -197,8 +197,8 @@ public class ConfigurationManager implements Serializable {
 	return config.getFeeds().getSftpclients();
     }
     
-    public List<SFTPServerAccount> getSFTPServers() {
-	return config.getFeeds().getSftpservers();
+    public SFTPServerConfig getSFTPServer() {
+	return config.getFeeds().getSftpserver();
     }
 
     public String getPublicUrl() {

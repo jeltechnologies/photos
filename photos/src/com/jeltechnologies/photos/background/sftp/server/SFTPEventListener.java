@@ -21,16 +21,13 @@ public class SFTPEventListener implements SftpEventListener, SFTPEventListenerMB
 
     private List<FileChangeListener> listeners = new ArrayList<FileChangeListener>();
 
-    private final String user;
-
     private final int port;
 
     private int filesChanged = 0;
 
     private String lastEvent;
 
-    public SFTPEventListener(String user, int port) {
-	this.user = user;
+    public SFTPEventListener(int port) {
 	this.port = port;
 	if (LOGGER.isTraceEnabled()) {
 	    lastEvent = "Instantiated";
@@ -44,11 +41,6 @@ public class SFTPEventListener implements SftpEventListener, SFTPEventListenerMB
     @Override
     public String getLastEvent() {
 	return lastEvent;
-    }
-
-    @Override
-    public String getUser() {
-	return user;
     }
 
     @Override
@@ -70,7 +62,7 @@ public class SFTPEventListener implements SftpEventListener, SFTPEventListenerMB
 
     @Override
     public void initialized(ServerSession serverSession, int version) {
-	lastEvent = "Initialized";
+	lastEvent = "Initialized " + serverSession.getUsername();
 	if (LOGGER.isTraceEnabled()) {
 	    LOGGER.trace(lastEvent);
 	}
@@ -89,9 +81,6 @@ public class SFTPEventListener implements SftpEventListener, SFTPEventListenerMB
 	lastEvent = "Open";
 	if (LOGGER.isTraceEnabled()) {
 	    LOGGER.trace(lastEvent);
-	}
-	File openedFile = localHandle.getFile().toFile();
-	if (openedFile.exists() && openedFile.isFile()) {
 	}
     }
 
@@ -226,7 +215,6 @@ public class SFTPEventListener implements SftpEventListener, SFTPEventListenerMB
 	if (LOGGER.isTraceEnabled()) {
 	    LOGGER.trace(lastEvent);
 	}
-	fileWasChanged(path);
     }
 
 }

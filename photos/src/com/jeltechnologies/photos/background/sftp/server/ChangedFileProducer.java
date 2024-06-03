@@ -87,5 +87,8 @@ public class ChangedFileProducer implements Runnable {
 	    }
 	}
     }
-
+    
+    public String toString() {
+	return THREAD_NAME;
+    }
 }

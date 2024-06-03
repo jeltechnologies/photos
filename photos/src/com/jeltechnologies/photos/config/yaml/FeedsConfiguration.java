@@ -9,7 +9,7 @@ public class FeedsConfiguration implements Serializable {
     
     private List<SFTPClientAccount> sftpclients = new ArrayList<SFTPClientAccount>();
     
-    private List<SFTPServerAccount> sftpservers = new ArrayList<SFTPServerAccount>();
+    private SFTPServerConfig sftpserver;
     
     public List<SFTPClientAccount> getSftpclients() {
         return sftpclients;
@@ -19,12 +19,12 @@ public class FeedsConfiguration implements Serializable {
         this.sftpclients = sftpaccounts;
     }
     
-    public List<SFTPServerAccount> getSftpservers() {
-        return sftpservers;
+    public SFTPServerConfig getSftpserver() {
+        return sftpserver;
     }
 
-    public void setSftpservers(List<SFTPServerAccount> sftservers) {
-        this.sftpservers = sftservers;
+    public void setSftpserver(SFTPServerConfig sftpserver) {
+        this.sftpserver = sftpserver;
     }
 
     @Override
@@ -32,8 +32,8 @@ public class FeedsConfiguration implements Serializable {
 	StringBuilder builder = new StringBuilder();
 	builder.append("FeedsConfiguration [sftpclients=");
 	builder.append(sftpclients);
-	builder.append(", sftpservers=");
-	builder.append(sftpservers);
+	builder.append(", sftpserver=");
+	builder.append(sftpserver);
 	builder.append("]");
 	return builder.toString();
     }

@@ -15,6 +15,7 @@ import com.jeltechnologies.photos.background.sftp.client.SFTPClientConnectionDat
 import com.jeltechnologies.photos.background.sftp.client.SyncThread;
 import com.jeltechnologies.photos.background.sftp.server.FileChangeHandler;
 import com.jeltechnologies.photos.background.sftp.server.SFTPServer;
+import com.jeltechnologies.photos.background.sftp.server.SFTPServer.User;
 import com.jeltechnologies.photos.background.thumbs.CleanPhotosThread;
 import com.jeltechnologies.photos.background.thumbs.NotWorkingFiles;
 import com.jeltechnologies.photos.background.thumbs.ProduceFolder;
@@ -23,7 +24,8 @@ import com.jeltechnologies.photos.background.thumbs.ThumbnailsConsumer;
 import com.jeltechnologies.photos.background.thumbs.UpdateCacheJob;
 import com.jeltechnologies.photos.config.yaml.RefreshConfiguration;
 import com.jeltechnologies.photos.config.yaml.SFTPClientAccount;
-import com.jeltechnologies.photos.config.yaml.SFTPServerAccount;
+import com.jeltechnologies.photos.config.yaml.SFTPServerConfig;
+import com.jeltechnologies.photos.config.yaml.SFTPServerUser;
 import com.jeltechnologies.photos.datatypes.usermodel.RoleModel;
 import com.jeltechnologies.photos.pictures.MediaQueue;
 import com.jeltechnologies.photos.pictures.PhotosFileNameFilter;
@@ -89,7 +91,7 @@ public class BackgroundServices {
 	    } else {
 		LOGGER.warn("Configured to not start background services");
 	    }
-	    //scheduleUpdateTimelineCache();
+	    // scheduleUpdateTimelineCache();
 	}
     }
 
@@ -130,15 +132,14 @@ public class BackgroundServices {
 	    }
 	}
     }
- 
+
     private void scheduleProducers() {
 	Producer producerCompleteRefresh = createProducer(Producer.Type.COMPLETE_REFRESH);
 	RefreshConfiguration refreshConfiguration = Environment.INSTANCE.getConfig().getRefreshConfiguration();
 	if (refreshConfiguration.isAllAtStarup()) {
 	    threadService.execute(producerCompleteRefresh);
 	    LOGGER.info("Starting a complete refresh at startup");
-	}
-	else {
+	} else {
 	    LOGGER.info("Skipping a complete refresh at startup");
 	}
 	if (refreshConfiguration.isScheduled()) {
@@ -212,17 +213,19 @@ public class BackgroundServices {
 	}
     }
 
-    @SuppressWarnings("unused")
     private void startSFTPServer() {
-	List<SFTPServerAccount> serverAccounts = ENV.getConfig().getSFTPServers();
-	FileChangeHandler listener = new FileChangeHandler();
-	for (SFTPServerAccount account : serverAccounts) {
+	SFTPServerConfig serverAccount = ENV.getConfig().getSFTPServer();
+	if (serverAccount != null) {
+	    FileChangeHandler listener = new FileChangeHandler();
 	    SFTPServer server = null;
 	    try {
-		String user = account.getUser();
-		String folderName = ENV.getRootOriginalFolder() + "/" + ENV.getRelativeRootUncategorized() + "/sftp/" + user;
+		String folderName = ENV.getRootOriginalFolder() + "/" + ENV.getRelativeRootUncategorized() + "/sftp/";
 		File folder = new File(folderName);
-		server = new SFTPServer(account.getPort(), user, account.getPassword(), folder);
+		List<User> users = new ArrayList<User>();
+		for (SFTPServerUser configUser: serverAccount.getUsers()) {
+		    users.add(new User(configUser.user(), configUser.password()));
+		}
+		server = new SFTPServer(serverAccount.getPort(), folder, users);
 		server.addListener(listener);
 		sftpServers.add(server);
 	    } catch (Exception e) {
@@ -233,6 +236,7 @@ public class BackgroundServices {
 		    name = server.getServerName();
 		}
 		LOGGER.error("Cannot start " + name + " because " + e.getMessage());
+
 	    }
 	}
     }

@@ -27,7 +27,36 @@ public class FileChangeHandler implements FileChangeListener {
 	if (LOGGER.isDebugEnabled()) {
 	    LOGGER.debug("File changed " + file);
 	}
-	queue.add(file);
+	boolean add = true;
+	if (file == null) {
+	    add = false;
+	}
+	if (add && !file.isFile()) {
+	    add = false;
+	}
+	if (isPartialUpload(file)) {
+	    boolean delete = file.delete();
+	    LOGGER.debug(file.getName() + " deleted: " + delete);
+	} else {
+	    if (add) {
+		queue.add(file);
+	    }
+	}
+    }
+
+    private boolean isPartialUpload(File file) {
+	boolean partial = false;
+	String name = file.getName();
+	// Partial file for Photosync on IPhone
+	if (name.startsWith("_") || name.startsWith(".")) {
+	    partial = true;
+	}
+	// Partial file for WS/FTP
+	if (!partial && name.endsWith(".filepart")) {
+	    partial = true;
+	}
+	LOGGER.debug(file.getName() + " => partial: " + partial);
+	return partial;
     }
 
 }
