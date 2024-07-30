@@ -92,6 +92,7 @@ function getPhotos(month, year) {
 }
 
 function receivePhotos(data) {
+	const ADD_BUTTON_HTML = "<button onclick='addClicked()'>Add</button>";
 	let html = "";
 	html += '<div id="add-new-period" class="add-new-period album">';
 	let month = data.month;
@@ -106,6 +107,7 @@ function receivePhotos(data) {
 			title = htmlEncode(capitalizeFirstLetter(LOCALE_MONTHS[(month - 1)] + " " + year));
 		}
 		html += "<h2 id='" + titleId + "'>" + title + "</h2>";
+		html += "<div class='add-new-buttons'>" +  ADD_BUTTON_HTML + "</div>";
 		html += "<ul>";
 		for (let i = 0; i < photos.length; i++) {
 			html += renderPhoto(photos[i], i);
@@ -120,7 +122,7 @@ function receivePhotos(data) {
 	html += "<div id='" + buttonId + "' class='add-new-buttons'>";
 	let onclickNext = "onclick=\"getPreviousMonthClicked(" + month + ", year=" + year + ", id='" + buttonId + "');return false;\"";
 	html += "<button " + onclickNext + ">Get more</button>";
-	html += "<button onclick='addClicked()'>Add</button>";
+	html += ADD_BUTTON_HTML;
 	html += " </div>";
 
 	$('#add-new-periods').append(html);

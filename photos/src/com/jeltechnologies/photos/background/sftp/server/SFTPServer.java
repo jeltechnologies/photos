@@ -31,22 +31,27 @@ public class SFTPServer {
 	this.passwordAuthenticator = new SFTPPasswordAuthenticator(users);
 	this.fileSystemFactory = new VirtualFileSystemFactory();
 	this.fileSystemFactory.setDefaultHomeDir(homeFolder.toPath());
+	createFolderIfNotExists(homeFolder);
 	for (User user : users) {
 	    File userFolder = new File(homeFolder, user.user());
+	    createFolderIfNotExists(userFolder);
 	    this.fileSystemFactory.setUserHomeDir(user.user, userFolder.toPath());
 	}
 	this.serverName = "SFTP server on port " + port;
 	this.eventListener = new SFTPEventListener(port);
 	JMXUtils.getInstance().registerMBean(serverName, "SFTP", eventListener);
-	if (!homeFolder.isDirectory()) {
-	    boolean created = homeFolder.mkdirs();
+	start();
+    }
+    
+    private void createFolderIfNotExists(File folder) {
+	if (!folder.isDirectory()) {
+	    boolean created = folder.mkdirs();
 	    if (created) {
-		LOGGER.info("Created folder " + homeFolder);
+		LOGGER.info("Created folder " + folder);
 	    } else {
-		LOGGER.warn("Cannot create folder " + homeFolder);
+		LOGGER.warn("Cannot create folder " + folder);
 	    }
 	}
-	start();
     }
 
     public String getServerName() {

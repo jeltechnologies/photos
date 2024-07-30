@@ -1,3 +1,5 @@
+const DEFAULT_PROGRAM = "last6months";
+const DEFAULT_PERCENTATE = 25;
 const SECONDS = 1000;
 const NEXT_SLIDE = 60 * SECONDS;
 const START_AMOUNT_SLIDES = 120;
@@ -310,7 +312,7 @@ function setupSwiper() {
 function initPrograms() {
 	let program = filterOption.program.name;
 	if (program == undefined) {
-		program = "programs-ALL";
+		program = "ALL";
 	}
 	$("#radio-" + program).prop("checked", true);
 	let programPercentage = filterOption.percentage;
@@ -340,7 +342,7 @@ function getPhotos() {
 	let urlParams = new URLSearchParams(window.location.search);
 	let program = urlParams.get('program');
 	if (program == undefined || program === "") {
-		program = "ALL";
+		program = DEFAULT_PROGRAM;
 	}
 	let amount = urlParams.get('amount');
 	if (amount == undefined || amount === "") {
@@ -348,7 +350,7 @@ function getPhotos() {
 	}
 	let percentage = urlParams.get('program-percentage');
 	if (percentage == undefined || percentage === "") {
-		percentage = 100;
+		percentage = DEFAULT_PERCENTATE;
 	}
 	let photoInSlideShow = urlParams.get("photo-in-slideshow");
 	filterOption = {};
@@ -400,7 +402,8 @@ function receivePhotos(data) {
 	photos = enforceArrayFromElements(data.payload);
 	photosOnLoad = photos;
 	accessToken = data.mapkey;
-	programOnLoad = htmlEncode(data.description);
+	console.log(data);
+	programOnLoad = htmlEncode(data.percentage + "% of " + data.description.toLowerCase());
 	likeThisPayload = null;
 	$('#view-menu-title').html(programOnLoad);
 	for (let i = 0; i < photos.length; i++) {

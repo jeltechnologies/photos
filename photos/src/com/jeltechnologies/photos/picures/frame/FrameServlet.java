@@ -79,7 +79,7 @@ public class FrameServlet extends BaseServlet {
 
 	    List<Photo> photos = filterOption.program().getPhotos(filterOption);
 	    String mapKey = Environment.INSTANCE.getConfig().getMapBoxAccessToken();
-	    FrameResponse frameResponse = new FrameResponse(filterOption.program().getName(), filterOption.program().getDescription(), mapKey, photos, sinceHours);
+	    FrameResponse frameResponse = new FrameResponse(filterOption.program().getName(), filterOption.programPercentage(), filterOption.program().getDescription(), mapKey, photos, sinceHours);
 	    respondJson(response, frameResponse);
 	    if (LOGGER.isTraceEnabled()) {
 		long endTime = System.currentTimeMillis();
