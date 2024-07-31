@@ -123,7 +123,7 @@ function openModalWebPage(modal, webPageUrl) {
 			$.modal.getCurrent().options.showClose = false;
 		},
 		error: function(jqXHR, textStatus, errorThrown) {
-			alert("AJAX error, cannot openModalWebPage");
+			console.log("AJAX error, cannot openModalWebPage");
 		}
 	});
 	modal.modal();

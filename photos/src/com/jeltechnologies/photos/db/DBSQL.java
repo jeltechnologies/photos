@@ -22,6 +22,8 @@ public class DBSQL {
     public static final String CREATE_MEDIA_TYPES_TABLE = createMediaTypeTable();
     public static final String CREATE_SHARES_TABLE = createSharesTable();
     public static final String CREATE_PREFERENCES_TABLE = createPreferencesTable();
+    
+    public static final String CREATE_FRAME_LOGLINES_TABLE= createFrameLogLinesTable();
 
     private static String createPhotosTable() {
 	StringBuilder bc = new StringBuilder();
@@ -287,6 +289,18 @@ public class DBSQL {
 	b.append("CREATE TABLE IF NOT EXISTS preferences (");
 	b.append(" username TEXT PRIMARY KEY,");
 	b.append(" preferences TEXT");
+	b.append(");");
+	return b.toString();
+    }
+    
+    private static String createFrameLogLinesTable() {
+	StringBuilder b = new StringBuilder();
+	b.append("CREATE TABLE IF NOT EXISTS frameloglines (");
+	b.append(" timestamp TIMESTAMP NOT NULL,");
+	b.append(" message TEXT NULL,");
+	b.append(" id TEXT NOT NULL,");
+	b.append(" username TEXT NOT NULL,");
+	b.append(" session TEXT NOT NULL");
 	b.append(");");
 	return b.toString();
     }

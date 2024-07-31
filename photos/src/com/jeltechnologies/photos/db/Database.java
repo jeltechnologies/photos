@@ -36,6 +36,7 @@ import com.jeltechnologies.photos.pictures.Album;
 import com.jeltechnologies.photos.pictures.MediaFile;
 import com.jeltechnologies.photos.pictures.MediaType;
 import com.jeltechnologies.photos.pictures.Photo;
+import com.jeltechnologies.photos.picures.frame.FrameLogLine;
 import com.jeltechnologies.photos.picures.share.SharedFile;
 import com.jeltechnologies.photos.utils.JSONUtilsFactory;
 import com.jeltechnologies.photos.utils.StringUtils;
@@ -130,6 +131,7 @@ public class Database implements QuerySupport {
 	executeSQL(DBSQL.CREATE_FILES_TABLE);
 	executeSQL(DBSQL.CREATE_PREFERENCES_TABLE);
 	executeSQL(DBSQL.CREATE_SHARES_TABLE);
+	executeSQL(DBSQL.CREATE_FRAME_LOGLINES_TABLE);
 	for (String sql : DBSQL.getIndexesSQL()) {
 	    executeSQL(sql);
 	}
@@ -1556,6 +1558,18 @@ public class Database implements QuerySupport {
 	    LOGGER.warn("Rolling back. Cannot update " + rows + " at once, can only update one row at the time");
 	    rollback();
 	}
+    }
+    
+    public void addLogLine(FrameLogLine line) throws SQLException {
+	String sql = "INSERT INTO frameloglines (timestamp, message, username, id, session) VALUES (?,?,?,?,?);";
+	PreparedStatement st = getStatement(sql);
+	st.clearParameters();
+	DBUtils.setTimestamp(st, 1, line.getTimestamp());
+	st.setString(2, line.getMessage());
+	st.setString(3, line.getUser());
+	st.setString(4, line.getId());
+	st.setString(5, line.getSessionId());
+	st.executeUpdate();
     }
 
 }

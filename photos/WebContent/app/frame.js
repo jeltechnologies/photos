@@ -47,6 +47,18 @@ function hidePhotoOK() {
 	postJson("photo", action, hidePhotoCompleted);
 }
 
+function serverLog(message) {
+	let photo = photos[swiper.realIndex];
+	let id = photo.id;
+	let line = {};
+	line.id = id;
+	line.message = message;
+	postJson("frame/log", line, logCompleted);
+}
+
+function logCompleted() {
+}
+
 function hidePhotoCompleted() {
 	let index = swiper.realIndex;
 	swiper.removeSlide(index);
@@ -100,10 +112,10 @@ async function shareImage(data) {
 	let imageUrl = data.url;
 	let fileName = data.fileName;
 	let mimeType = data.mimeType;
-	//alert("Trying to get the blob: " + imageUrl + " with fileName: " + fileName + ", mimeType: " + mimeType);
+	serverLog("Trying to get the blob: " + imageUrl + " with fileName: " + fileName + ", mimeType: " + mimeType);
 	const response = await fetch(imageUrl);
 	const blob = await response.blob();
-	//alert("Recevied the blob");
+	serverLog("Recevied the blob");
 	const filesArray = [
 		new File([blob], fileName,
 			{
@@ -114,7 +126,7 @@ async function shareImage(data) {
 	const shareData = {
 		files: filesArray,
 	};
-	//alert("Trying navigator share");
+	serverLog("Trying navigator share");
 	navigator.share(shareData);
 }
 
@@ -203,24 +215,17 @@ function startVideo(id) {
 	let element = document.getElementById(id);
 	console.log("startVideo " + id);
 	if (typeof (element) != 'undefined' && element != null) {
-		//console.log("video exists");
-
 		element.play();
-
 		let vid = element;
 		vid.onabort = function() {
-			alert("Video load aborted");
+			serverLog("Video load aborted");
 		};
 		vid.onerror = function(e) {
-			alert("Error! Something went wrong: " + e.message);
+			serverLog("Cannot start video");
 		};
 		vid.onended = function() {
-			console.log("The vid has ended");
+			console.log("The video has ended");
 		};
-
-		//element.controls = true;
-		//element.muted = false;
-		//console.log("play");
 		lastPlayedVideo = id;
 		currentVideoElement = element;
 	} else {
@@ -240,8 +245,8 @@ function pauseVideo(id) {
 }
 
 function swiperSlideChange() {
-	//alert("swiperSliceChange");
 	if (photos.length > 0) {
+		serverLog("Showing");
 		if (timeOutNextSlide != undefined) {
 			clearTimeout(timeOutNextSlide);
 		}
