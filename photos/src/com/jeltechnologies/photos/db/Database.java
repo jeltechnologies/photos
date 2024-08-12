@@ -1561,14 +1561,16 @@ public class Database implements QuerySupport {
     }
     
     public void addLogLine(FrameLogLine line) throws SQLException {
-	String sql = "INSERT INTO frameloglines (timestamp, message, username, id, session) VALUES (?,?,?,?,?);";
+	String sql = "INSERT INTO frameloglines (timestamp, message, program, percentage, username, id, session) VALUES (?,?,?,?,?,?,?);";
 	PreparedStatement st = getStatement(sql);
 	st.clearParameters();
 	DBUtils.setTimestamp(st, 1, line.getTimestamp());
 	st.setString(2, line.getMessage());
-	st.setString(3, line.getUser());
-	st.setString(4, line.getId());
-	st.setString(5, line.getSessionId());
+	st.setString(3, line.getProgram());
+	st.setInt(4, line.getPercentage());
+	st.setString(5, line.getUser());
+	st.setString(6, line.getId());
+	st.setString(7, line.getSessionId());
 	st.executeUpdate();
     }
 

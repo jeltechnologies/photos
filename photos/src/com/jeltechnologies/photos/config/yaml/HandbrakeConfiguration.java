@@ -1,10 +1,15 @@
 package com.jeltechnologies.photos.config.yaml;
 
+import java.io.File;
+import java.io.Serializable;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class HandbrakeConfiguration extends ExternalProgramConfiguration {
+public class HandbrakeConfiguration implements Serializable {
     private static final long serialVersionUID = 2107314943889436745L;
-
+    
+    private File executable;
+    
     @JsonProperty(value = "quality-high")
     private HandbrakeEncodingSettings qualityHigh = new HandbrakeEncodingSettings("Creator 2160p60 4K", "x264");
 
@@ -27,8 +32,18 @@ public class HandbrakeConfiguration extends ExternalProgramConfiguration {
 	this.qualityLow = qualityLow;
     }
 
+    public File getExecutable() {
+        return executable;
+    }
+
+    public void setExecutable(File executable) {
+        this.executable = executable;
+    }
+
     @Override
     public String toString() {
-	return "HandbrakeConfiguration [qualityHigh=" + qualityHigh + ", qualityLow=" + qualityLow + ", getExecutable()=" + getExecutable() + "]";
+	return "HandbrakeConfiguration [executable=" + executable + ", qualityHigh=" + qualityHigh + ", qualityLow=" + qualityLow + "]";
     }
+
+
 }

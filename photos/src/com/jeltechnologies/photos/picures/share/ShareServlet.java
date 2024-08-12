@@ -34,45 +34,7 @@ public class ShareServlet extends BaseServlet {
     protected static final String SESSION_KEY = SharedFile.class.getName();
     private static final int TOKEN_VALIDATY_SECONDS = 10;
 
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-	if (LOGGER.isTraceEnabled()) {
-	    LOGGER.trace("doGet: " + request.getRequestURI());
-	}
-	String uuid = StringUtils.findAfterLast(request.getRequestURI(), "/");
-	Database db = null;
-	try {
-	    db = new Database();
-	    SharedFile shared = db.getSharedFile(uuid);
-	    LOGGER.trace("Found shared from database: " + shared);
-	    if (shared == null) {
-		LOGGER.trace("Shared not found in database");
-		response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-	    } else {
-		LocalDateTime now = LocalDateTime.now();
-		if (now.isAfter(shared.expirationDate())) {
-		    LOGGER.trace("Shared expired. " + shared.expirationDate() + ", while it is now: " + now );
-		    response.setStatus(HttpServletResponse.SC_GONE);
-		} else {
-		    Photo photo = db.getFirstPhotoById(RoleModel.getSystemAdmin(), shared.photoId());
-		    if (photo == null) {
-			LOGGER.trace("Photo not found in database");
-			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-		    } else {
-			boolean originalQuality = true;
-			LOGGER.trace("Responding photo");
-			respondSharedPhoto(request, response, photo, originalQuality);
-		    }
-		}
-	    }
-	} catch (Exception e) {
-	    LOGGER.error("Cannot get shared file " + uuid, e);
-	    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-	} finally {
-	    if (db != null) {
-		db.close();
-	    }
-	}
-    }
+    
     
     private void respondSharedPhoto(HttpServletRequest request, HttpServletResponse response, Photo photo, boolean originalQuality) throws Exception {
 	switch (photo.getType()) {
@@ -108,7 +70,7 @@ public class ShareServlet extends BaseServlet {
 	SharedFileRequest sharedFileRequested = null;
 	try {
 	    sharedFileRequested = (SharedFileRequest) getJsonFromBody(request, SharedFileRequest.class);
-	    LOGGER.trace("sharedFileRequest: " + sharedFileRequested);
+	    LOGGER.debug("sharedFileRequest: " + sharedFileRequested);
 	    Database database = null;
 	    try {
 		database = new Database();
@@ -117,37 +79,33 @@ public class ShareServlet extends BaseServlet {
 		if (photo == null) {
 		    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		} else {
-		    String uuid = UUID.randomUUID().toString();
-		    LocalDateTime created = LocalDateTime.now();
-		    LocalDateTime expired = created.plusSeconds(TOKEN_VALIDATY_SECONDS);
-		    String publicUrl = Environment.INSTANCE.getConfig().getPublicUrl();
-		    if (!publicUrl.endsWith("/")) {
-			publicUrl += "/";
-		    }
-		    publicUrl += "share/" + uuid;
-		    SharedFile shared = new SharedFile(uuid, photo.getId(), created, expired, user.name());
-		    database.addSharedFile(shared);
-		    database.commit();
-		    response.setHeader("Location", publicUrl);
-		    response.setStatus(HttpServletResponse.SC_CREATED);
 		    String mimeType;
 		    String fileName = photo.getId();
+		    String size;
+		    String url;
 		    switch (photo.getType()) {
 			case PHOTO: {
 			    fileName += ".jpg";
 			    mimeType = "image/jpeg";
+			    size="medium";
+			    url = "img?id=" + sharedFileRequested.id() + "&size=" + size;
 			    break;
 			}
 			case VIDEO: {
 			    fileName += ".mp4";
 			    mimeType = "video/mp4";
+			    size = "small";
+			    url = "download/" + sharedFileRequested.id() + "-size-medium.mp4";
 			    break;
 			}
 			default: {
 			    throw new IllegalStateException("Unsupported type: " + photo.getType());
 			}
 		    }
-		    respondJson(response, new PostResponseBody(publicUrl, fileName, mimeType));
+		    
+		    PostResponseBody responseBody = new PostResponseBody(url, fileName, mimeType);
+		    LOGGER.debug(responseBody.toString());
+		    respondJson(response, responseBody);
 		}
 	    } catch (Exception e) {
 		LOGGER.error("Error posting shared file: " + sharedFileRequested, e);

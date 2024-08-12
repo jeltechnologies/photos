@@ -101,6 +101,16 @@ public class VideoConsumer extends AbstractConsumer implements VideoConsumerMBea
 	File destination = thumbUtils.getConvertedMovie(quality, photo);
 
 	boolean mustConvert = enforceEncoding || !destination.isFile();
+	
+//	if (!mustConvert) {
+//	    boolean highResulution = photo.getThumbHeight() > 1080 || photo.getThumbWidth() > 1920;
+//	    mustConvert = quality.getType() == Type.HIGH && highResulution;
+//	}
+	
+//	if (photo.getId().equals("35f3481dfab2f5ca5c5c93fad6ba187a")) {
+//	    mustConvert = true;
+//	}
+//	
 	if (mustConvert) {
 	    HandbrakeConfiguration handBrakeConfig = Environment.INSTANCE.getConfig().getHandbrakeConfiguration();
 	    HandbrakeEncodingSettings encodingSettings = null;

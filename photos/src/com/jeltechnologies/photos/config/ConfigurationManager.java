@@ -112,6 +112,10 @@ public class ConfigurationManager implements Serializable {
 	    LOGGER.info("Imagemick found");
 	}
     }
+    
+    public boolean isCanConvertVideo() {
+	return config.getConverters().getHandbrake().getExecutable().isFile();
+    }
 
     public String getMapBoxAccessToken() {
 	return config.getMapkey();
@@ -167,10 +171,6 @@ public class ConfigurationManager implements Serializable {
 
     public File getFfmpegExecutable() {
 	return config.getConverters().getFfmpeg().getExecutable();
-    }
-
-    public boolean isCanConvertVideo() {
-	return config.getConverters().getHandbrake().executableExists();
     }
 
     public HandbrakeConfiguration getHandbrakeConfiguration() {

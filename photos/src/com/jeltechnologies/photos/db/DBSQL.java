@@ -299,6 +299,8 @@ public class DBSQL {
 	b.append(" timestamp TIMESTAMP NOT NULL,");
 	b.append(" message TEXT NULL,");
 	b.append(" id TEXT NOT NULL,");
+	b.append(" program TEXT NOT NULL,");
+	b.append(" percentage INT NOT NULL,");
 	b.append(" username TEXT NOT NULL,");
 	b.append(" session TEXT NOT NULL");
 	b.append(");");

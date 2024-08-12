@@ -82,6 +82,7 @@ public class DownloadServlet extends BaseServlet {
     }
 
     private void respondSingleFile(HttpServletRequest request, HttpServletResponse response, String fileName) throws ServletException {
+	LOGGER.info("Download " + fileName);
 	Database database = null;
 	try {
 	    database = new Database();

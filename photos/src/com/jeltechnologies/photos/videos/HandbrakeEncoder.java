@@ -13,7 +13,9 @@ import com.jeltechnologies.util.OperatingSystemCommand;
 public class HandbrakeEncoder {
     private final static Logger LOGGER = LoggerFactory.getLogger(HandbrakeEncoder.class);
     private static final File HANDBRAKE_EXE = Environment.INSTANCE.getConfig().getHandbrakeExecutable();
-
+    private static boolean IS_FLATPAK_USED = HANDBRAKE_EXE.getName().endsWith("flatpak");
+    	
+    
     private final File input;
     private final File output;
     private final HandbrakeEncodingSettings encodingSettings;
@@ -26,8 +28,28 @@ public class HandbrakeEncoder {
 
     public void convert(boolean removeHDR) throws VideoConvertException, InterruptedException {
 	OperatingSystemCommand command = new OperatingSystemCommand(HANDBRAKE_EXE);
+	
+	
+	// /usr/bin/flatpak run --command=HandBrakeCLI fr.handbrake.ghb
+	if (IS_FLATPAK_USED) {
+	    command.addArgument("run");
+	    command.addArgument("--command=HandBrakeCLI fr.handbrake.ghb");
+	}
+	
 	command.addArgument("-Z");
-	command.addArgument(encodingSettings.getPreset());
+	
+	String preset;
+	if (IS_FLATPAK_USED) {
+	    preset = "\"";
+	} else {
+	    preset = "";
+	}
+	preset += encodingSettings.getPreset();
+	if (IS_FLATPAK_USED) {
+	    preset += "\"";
+	}
+	
+	command.addArgument(preset);
 	if (removeHDR) {
 	    command.addArgument("--colorspace");
 	    command.addArgument("bt709");

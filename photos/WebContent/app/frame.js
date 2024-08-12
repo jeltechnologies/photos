@@ -24,6 +24,7 @@ var hideModalTimeout;
 var filterOption = {};
 var accessToken;
 var programOnLoad;
+var programPercentageOnLoad;
 var photos;
 var photosOnLoad;
 var likeThisPayload = null;
@@ -53,6 +54,8 @@ function serverLog(message) {
 	let line = {};
 	line.id = id;
 	line.message = message;
+	line.program = programOnLoad;
+	line.percentage = programPercentageOnLoad;
 	postJson("frame/log", line, logCompleted);
 }
 
@@ -408,9 +411,11 @@ function receivePhotos(data) {
 	photosOnLoad = photos;
 	accessToken = data.mapkey;
 	console.log(data);
-	programOnLoad = htmlEncode(data.percentage + "% of " + data.description.toLowerCase());
+	programOnLoad = data.description;
+	programPercentageOnLoad = data.percentage;
+	let menuTitle = htmlEncode(data.percentage + "% of " + data.description.toLowerCase());
 	likeThisPayload = null;
-	$('#view-menu-title').html(programOnLoad);
+	$('#view-menu-title').html(menuTitle);
 	for (let i = 0; i < photos.length; i++) {
 		let photo = photos[i];
 		if (photo.id === selectedPhoto) {
