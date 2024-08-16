@@ -9,7 +9,6 @@ const HIDE_MODAL = 15 * SECONDS;
 const MAX_HOURS_IN_SAME_PROGRAM_HOURS = 4; 
 const REFRESH_PAGE_AFTER = 90; // minutes
 const SHOW_VIDEO_CONTROLS = false; // also must change the css
-const QUALITY = "HIGH_QUALITY";
 const BACKGROUND_SELECTED = "#FF6A5C";
 const BACKGROUND_NOT_SELECTED = "#CCDFCB";
 const FOREGROUND_SELECTED = "white";
@@ -259,11 +258,19 @@ function swiperSlideChange() {
 		}
 		let index = swiper.realIndex;
 		let photo = photos[index];
+		let id = "slide-" + photo.id;
 		if (photo.type === "VIDEO") {
-			let id = "slide-" + photo.id;
 			startVideo(id);
+		} else {
+			showHighQualityPhoto(photo, id);
 		}
 	}
+}
+
+function showHighQualityPhoto(photo, slideId) {
+	let div = "#" + slideId;
+	let src = "img?size=medium&id=" + photo.id;
+	$(div).attr("src", src);
 }
 
 function scheduleNextSlide() {
@@ -455,7 +462,7 @@ function updateSlidesAndMoveTo(index) {
 			} else {
 				loading = "eager";
 			}
-			let slide = addSlide(photos[i], QUALITY, loading);
+			let slide = addSlide(photos[i], loading);
 			slides.push(slide);
 		}
 	}
@@ -474,35 +481,17 @@ function refreshWithDefaultProgram() {
 	window.location.href = window.location.pathname;
 }
 
-function addSlide(photo, qualityLabel, loading) {
-	let preload;
-	if (loading !== 'lazy') {
-		preload = " preload='none'";
-	}
-	const LOW_QUALITY = {
-		video: "low",
-		videoPoster: "small",
-		image: "medium"
-	};
-	const HIGH_QUALITY = {
-		video: "high",
-		videoPoster: "medium",
-		image: "medium"
-	};
-	if (qualityLabel === "HIGH_QUALITY") {
-		quality = HIGH_QUALITY;
-	} else {
-		quality = LOW_QUALITY;
-	}
+function addSlide(photo, loading) {
 	let html;
 	let id = photo.id;
 	html = "<div class='swiper-slide'><div class='swiper-zoom-container'>";
 	if (photo.type === "PHOTO") {
-		html += "<img id='slide-" + id + "' src='img?id=" + id + "&size=" + quality.image + "' loading='" + loading + "'>";
+		html += "<img id='slide-" + id + "' src='img?id=" + id + "&size=small' loading='" + loading + "'>";
 	} else {
-		let poster = "img?id=" + id + "&size=" + quality.videoPoster;
+		let preload = " preload='none'";
+		let poster = "img?id=" + id + "&size=small";
 		html += "<video id='slide-" + id + "' " + preload + " muted loop poster='" + poster + "'>";
-		html += "<source src='video?id=" + id + "&quality=" + quality.video + "' type='video/mp4'>";
+		html += "<source src='video?id=" + id + "&quality=high' type='video/mp4'>";
 		html += "</video>";
 	}
 	let title = htmlEncode(getTitle(photo));
@@ -512,7 +501,7 @@ function addSlide(photo, qualityLabel, loading) {
 	if (photo.type === "PHOTO") {
 		html += "<div class='swiper-lazy-preloader swiper-lazy-preloader-white'></div></div>";
 	}
-	//console.log(html);
+	console.log(html);
 	return html;
 }
 

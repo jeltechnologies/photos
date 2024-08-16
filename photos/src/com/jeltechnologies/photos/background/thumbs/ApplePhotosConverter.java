@@ -16,7 +16,7 @@ public class ApplePhotosConverter {
     private final File heicFile;
     private final File convertedFile;
 
-    private final boolean USES_IMAGEMICK_EXE = ENV.getConfig().getImageMagickExecutable().toString().toLowerCase().endsWith(".exe");
+    private final boolean USES_MOGRIFY_DIRECTLY = ENV.getConfig().getImageMagickExecutable().toString().toLowerCase().endsWith("mogrify");
 
     public ApplePhotosConverter(File heic) {
 	this.heicFile = heic;
@@ -40,12 +40,14 @@ public class ApplePhotosConverter {
 	OperatingSystemCommand command = new OperatingSystemCommand(exe);
 	// In Windows we execute magick.exe and we need to add mogrify as argument.
 	// In Linux we use mogrify as executable and do not use mogrify as argument.
-	if (USES_IMAGEMICK_EXE) {
+	if (!USES_MOGRIFY_DIRECTLY) {
 	    command.addArgument("mogrify");
 	}
+	command.addArgument(heicFile.getAbsolutePath());
+	command.addArgument("-quality");
+	command.addArgument("95%");
 	command.addArgument("-format");
 	command.addArgument("jpg");
-	command.addArgument(heicFile.getAbsolutePath());
 	command.execute();
     }
 }
