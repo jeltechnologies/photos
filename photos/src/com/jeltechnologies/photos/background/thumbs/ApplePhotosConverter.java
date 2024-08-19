@@ -16,8 +16,6 @@ public class ApplePhotosConverter {
     private final File heicFile;
     private final File convertedFile;
 
-    private final boolean USES_MOGRIFY_DIRECTLY = ENV.getConfig().getImageMagickExecutable().toString().toLowerCase().endsWith("mogrify");
-
     public ApplePhotosConverter(File heic) {
 	this.heicFile = heic;
 	String nameWithoutExtension = StringUtils.stripAfterLast(heicFile.getAbsolutePath(), ".");
@@ -38,16 +36,25 @@ public class ApplePhotosConverter {
     private void convert() throws IOException, InterruptedException {
 	File exe = ENV.getConfig().getImageMagickExecutable();
 	OperatingSystemCommand command = new OperatingSystemCommand(exe);
-	// In Windows we execute magick.exe and we need to add mogrify as argument.
-	// In Linux we use mogrify as executable and do not use mogrify as argument.
-	if (!USES_MOGRIFY_DIRECTLY) {
+	String exeName = exe.getName();
+	if (exeName.indexOf("mogrify") > -1) {
 	    command.addArgument("mogrify");
+	    command.addArgument("-quality");
+	    command.addArgument("95%");
+	    command.addArgument("-format");
+	    command.addArgument("jpg");
+	    command.addArgument(heicFile.getAbsolutePath());
+	} else {
+	    if (exeName.indexOf("heif-convert") > -1) {
+		command.addArgument("-q");
+		command.addArgument("95");
+		command.addArgument(heicFile.getAbsolutePath());
+		command.addArgument(convertedFile.getAbsolutePath());
+	    } else {
+		throw new IllegalStateException("Heic converter not properly installed");
+	    }
 	}
-	command.addArgument(heicFile.getAbsolutePath());
-	command.addArgument("-quality");
-	command.addArgument("95%");
-	command.addArgument("-format");
-	command.addArgument("jpg");
 	command.execute();
+	LOGGER.info(command.getDescription());
     }
 }

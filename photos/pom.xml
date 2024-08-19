@@ -149,6 +149,7 @@
 					<include>logback.xml</include>
 					<include>handbrake-presetlist.json</include>
 					<include>countrycodes.json</include>
+					<include>exiftool-tags.txt</include>
 				</includes>
 			</resource>
 		</resources>

@@ -6,10 +6,13 @@ import java.util.List;
 public class DBSQL {
     public static final String CREATE_PHOTOS_TABLE = createPhotosTable();
     public static final String CREATE_FILES_TABLE = createFilesTable();
+    public static final String CREATE_META_TABLE = createMetaTable();
+    public static final String CREATE_META_TAG_TABLE = createMetaTagTable();
     public static final String INSERT_PHOTOS = insertPhotos();
     public static final String GET_PHOTOS = getPhotos();
     public static final String GET_PHOTOS_ATTRIBUTES = getPhotoAttributes();
     public static final String GET_PHOTOS_FILES_INNER_JOIN = getPhotosFileInnerJoin();
+    public static final String GET_PHOTOS_FILES_INNER_JOIN_META = getPhotosFileInnerJoinMeta();
     public static final String UPDATE_PHOTOS = updatePhotos();
 
     public static final String CREATE_ALBUMS_TABLE = createAlbumsTable();
@@ -30,7 +33,7 @@ public class DBSQL {
 	bc.append("CREATE TABLE IF NOT EXISTS Photos (");
 	bc.append(" id TEXT PRIMARY KEY,");
 	bc.append(" mediatype CHAR(1) NOT NULL, ");
-	bc.append(" dateTaken TIMESTAMP NOT NULL,");
+	bc.append(" dateTaken TIMESTAMPZ NOT NULL,");
 	bc.append(" thumbWidth INT,");
 	bc.append(" thumbHeight INT,");
 	bc.append(" orientation INT, ");
@@ -138,6 +141,20 @@ public class DBSQL {
 	se.append(",f.filename");
 	se.append(",f.role");
 	se.append(" FROM photos p INNER JOIN files f ON p.id=photos_id");
+	return se.toString();
+    }
+    
+    private static String getPhotosFileInnerJoinMeta() {
+	StringBuilder se = new StringBuilder();
+	se.append("SELECT ");
+	se.append(GET_PHOTOS_ATTRIBUTES);
+	se.append(",f.relativefilename");
+	se.append(",f.relativefoldername");
+	se.append(",f.filename");
+	se.append(",f.role");
+	se.append(" FROM photos p INNER JOIN files f ON p.id=photos_id");
+	
+	//se.append(" RIGHT OUTER JOIN (SELECT  )
 	return se.toString();
     }
     
@@ -303,6 +320,28 @@ public class DBSQL {
 	b.append(" percentage INT NOT NULL,");
 	b.append(" username TEXT NOT NULL,");
 	b.append(" session TEXT NOT NULL");
+	b.append(");");
+	return b.toString();
+    }
+    
+    private static String createMetaTagTable() {
+	StringBuilder b = new StringBuilder();
+	b.append("CREATE TABLE IF NOT EXISTS metatags (");
+	b.append(" id SERIAL PRIMARY KEY NOT NULL,");
+	b.append(" tag TEXT NOT NULL");
+	b.append(");");
+	return b.toString();
+    }
+    
+    private static String createMetaTable() {
+	StringBuilder b = new StringBuilder();
+	b.append("CREATE TABLE IF NOT EXISTS meta (");
+	b.append(" photos_id TEXT NOT NULL,");
+	b.append(" tags_id INT NOT NULL,");
+	b.append(" contents TEXT NOT NULL,");
+	b.append(" CONSTRAINT meta_pk PRIMARY KEY(photos_id, tags_id),");
+	b.append(" CONSTRAINT meta_fk_photos FOREIGN KEY(photos_id) REFERENCES photos(id) ON DELETE CASCADE ON UPDATE CASCADE,");
+	b.append(" CONSTRAINT meta_fk_tags FOREIGN KEY(tags_id) REFERENCES metatags(id) ON DELETE CASCADE ON UPDATE CASCADE");
 	b.append(");");
 	return b.toString();
     }

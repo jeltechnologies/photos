@@ -267,10 +267,10 @@ function getLocationInfo(photo) {
 	let address = photo.address;
 	if (address != undefined) {
 		let addressInfo = "";
-		if (address.street != undefined) {
+		if (address.street != undefined && address.street !== '') {
 			addressInfo = addressInfo + address.street + ", ";
 		}
-		if (address.place != undefined) {
+		if (address.place != undefined && address.place !== '') {
 			addressInfo = addressInfo + address.place + ", ";
 		}
 		addressInfo = addressInfo + address.country.name;

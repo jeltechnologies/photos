@@ -2,17 +2,11 @@ package com.jeltechnologies.photos.videos;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.jeltechnologies.geoservices.datamodel.Coordinates;
 import com.jeltechnologies.photos.Environment;
 import com.jeltechnologies.photos.datatypes.Dimension;
 import com.jeltechnologies.photos.pictures.Photo;
@@ -34,6 +28,7 @@ public class PosterAndCoordinatesFileEncoder {
 	this.video = video;
     }
 
+    // We use this to check if the movie is an "live" photo in IoS
     public void parseMetaData() throws VideoConvertException, InterruptedException {
 	if (LOGGER.isDebugEnabled()) {
 	    LOGGER.debug("parseMetaData " + video.getId() + " => " + video.getRelativeFileName());
@@ -49,8 +44,7 @@ public class PosterAndCoordinatesFileEncoder {
 	    String make = "";
 	    String model = "";
 
-	    VideoMetaDataParser parser = new VideoMetaDataParser(input);
-
+	    
 	    for (String line : logLines) {
 //		    com.apple.quicktime.creationdate: 2021-06-17T11:41:26+0200
 //		    com.apple.quicktime.location.accuracy.horizontal: 14.267767
@@ -62,36 +56,6 @@ public class PosterAndCoordinatesFileEncoder {
 //		    com.apple.quicktime.make: Apple
 //		    com.apple.quicktime.model: iPhone 12
 //		    com.apple.quicktime.software: 14.6
-
-		String creationDate = StringUtils.findAfter(line, "com.apple.quicktime.creationdate:").trim();
-		if (creationDate != null && !creationDate.equals("")) {
-		    LocalDateTime ldt = parser.parseDate(creationDate);
-		    video.setDateTaken(ldt);
-		}
-		String location = StringUtils.findAfter(line, "com.apple.quicktime.location.ISO6709:").trim();
-		if (location != null && !location.equals("")) {
-		    BigDecimal lat = parser.parseLatidude(location);
-		    BigDecimal lon = parser.parseLongitude(location);
-		    video.setCoordinates(new Coordinates(lat, lon));
-		}
-
-		// Duration: 00:00:02.60, start: 0.000000, bitrate: 11369 kb/s
-		String duration = StringUtils.findBetween(line, "Duration: ", ",");
-		if (duration != null && !duration.equals("")) {
-		    video.setDuration(parser.parseDuration(duration));
-		}
-
-		// com.apple.quicktime.make: Apple
-		if (!foundMake) {
-		    make = StringUtils.findAfter(line, "com.apple.quicktime.make:").trim();
-		    foundMake = !make.isEmpty();
-		}
-
-		// com.apple.quicktime.model: iPhone 13
-		if (!foundModel) {
-		    model = StringUtils.findAfter(line, "com.apple.quicktime.model:").trim();
-		    foundModel = !model.isEmpty();
-		}
 
 		// com.apple.quicktime.live-video.auto: 1
 		String liveVideoValue = StringUtils.findAfter(line, "com.apple.quicktime.live-video.auto:").trim();
@@ -115,20 +79,6 @@ public class PosterAndCoordinatesFileEncoder {
 		if (!source.equals(video.getSource())) {
 		    video.setSource(source);
 		}
-	    }
-	    if (video.getDateTaken() == null) {
-		LocalDateTime date;
-		try {
-		    BasicFileAttributes attr = Files.readAttributes(input.toPath(), BasicFileAttributes.class);
-		    date = attr.lastModifiedTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-		    if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Read date from filesystem: " + date);
-		    }
-		} catch (IOException e) {
-		    LOGGER.error("Error when trying to get date", e);
-		    date = LocalDateTime.now();
-		}
-		video.setDateTaken(date);
 	    }
 
 	    if (LOGGER.isDebugEnabled()) {
@@ -216,6 +166,7 @@ public class PosterAndCoordinatesFileEncoder {
 //	    for (String line : command.getOutput()) {
 //		LOGGER.warn(line);
 //	    }
+	    input.delete();
 	    throw new VideoConvertException("Cannot convert video in " + inPath + ". Error: " + command.getOutput());
 	}
 	return command.getOutput();

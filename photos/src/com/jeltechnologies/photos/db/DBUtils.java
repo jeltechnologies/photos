@@ -49,9 +49,13 @@ public class DBUtils {
 	}
     }
 
-    public static LocalDateTime getDateTime(ResultSet rs, int columnIndex) throws SQLException {
+    public static LocalDateTime getTimestamp(ResultSet rs, int columnIndex) throws SQLException {
 	LocalDateTime localDateTime = rs.getObject(columnIndex, LocalDateTime.class);
 	return localDateTime;
+    }
+    
+    public static void setDateTime(PreparedStatement st, int parameterIndex, LocalDateTime localDateTime) throws SQLException {
+	st.setObject(parameterIndex, localDateTime);
     }
     
     public static LocalDate getDate(ResultSet rs, int columnIndex) throws SQLException {
@@ -64,9 +68,6 @@ public class DBUtils {
 	return bigDecimal;
     }
 
-    public static void setTimestamp(PreparedStatement st, int parameterIndex, LocalDateTime localDateTime) throws SQLException {
-	st.setObject(parameterIndex, localDateTime);
-    }
     
     public static void setBigDecimal(PreparedStatement st, int parameterIndex, BigDecimal bigDecimal) throws SQLException {
 	if (bigDecimal != null) {

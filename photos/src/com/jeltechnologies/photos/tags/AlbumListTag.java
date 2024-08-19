@@ -49,7 +49,7 @@ public class AlbumListTag extends BaseTag {
     private static final OrderBy SORTING = OrderBy.DATE_TAKEN_OLDEST;
 
     private static final String ALBUM_WITHOUT_COVER = "images/album-without-cover-1440-1080.jpg";
-    
+
     private static final String PLAY_ICON = new IconTag("play").toString();
 
     private static final int ALBUM_WITHOUT_COVER_WIDTH = 1440;
@@ -65,8 +65,13 @@ public class AlbumListTag extends BaseTag {
     }
 
     private String getSizeHtml(int thumbWidth, int thumbHeight) {
-	BigDecimal bdWidth = new BigDecimal(thumbWidth).setScale(10).divide(new BigDecimal(thumbHeight), RoundingMode.HALF_UP).multiply(MAX_HEIGHT);
-	int width = bdWidth.intValue();
+	int width;
+	if (thumbHeight > 0 && thumbWidth > 0) {
+	    BigDecimal bdWidth = new BigDecimal(thumbWidth).setScale(10).divide(new BigDecimal(thumbHeight), RoundingMode.HALF_UP).multiply(MAX_HEIGHT);
+	    width = bdWidth.intValue();
+	} else {
+	    width = 0;
+	}
 	String sizeHtml = " width='" + width + "' height='" + MAX_HEIGHT + "'";
 	return sizeHtml;
     }
@@ -307,7 +312,7 @@ public class AlbumListTag extends BaseTag {
 	addLine("   </a>");
 	addLine("   <div id=\"map-album\"></div>");
     }
-    
+
     private String getDurationLabel(Photo photo) {
 	int totalSecs = photo.getDuration();
 	int hours = totalSecs / 3600;
@@ -363,7 +368,7 @@ public class AlbumListTag extends BaseTag {
 	    if (photo.getType() == MediaType.VIDEO) {
 		String icon = PLAY_ICON;
 		addLine("        <span class=\"video-icon\">" + icon + "</span>");
-		addLine("        <span class=\"video-time-label\">" + getDurationLabel(photo) + "</span>"); 
+		addLine("        <span class=\"video-time-label\">" + getDurationLabel(photo) + "</span>");
 	    }
 	    addLine("      </a>");
 	    addLine("  </li>");

@@ -28,15 +28,15 @@ public class OperatingSystemCommand {
     public OperatingSystemCommand(File exe) {
 	this.exe = exe;
     }
-    
+
     public OperatingSystemCommand(File exe, Quotes quotes) {
 	this.exe = exe;
     }
-    
+
     public void addArgument(String argument) {
 	this.arguments.add(new OperatingSystemCommandArgument(argument));
     }
-    
+
     public void addArgument(String argument, Quotes quotes) {
 	this.arguments.add(new OperatingSystemCommandArgument(argument, quotes));
     }
@@ -48,7 +48,7 @@ public class OperatingSystemCommand {
     public void setEnvironmentVariable(String variable, String value) {
 	environmentVariables.put(variable, value);
     }
-    
+
     public void setFolder(File folder) {
 	this.folder = folder;
     }
@@ -82,7 +82,7 @@ public class OperatingSystemCommand {
 		environment.put(name, environmentVariables.get(name));
 	    }
 	}
-	
+
 	if (folder != null) {
 	    if (LOGGER.isDebugEnabled()) {
 		LOGGER.debug("Executing in folder " + folder);
@@ -116,7 +116,15 @@ public class OperatingSystemCommand {
 	}
 
 	if (exitValue != 0) {
-	    throw new IOException(description + " => exit value: " + exitValue);
+	    StringBuilder errorMessage = new StringBuilder();
+	    if (responseLines.isEmpty()) {
+		errorMessage.append("Exit value: " + exitValue);
+	    } else {
+		for (String responseLine : responseLines) {
+		    errorMessage.append(responseLine).append(" ");
+		}
+	    }
+	    throw new IOException(description + " => " + errorMessage.toString());
 	}
 	if (LOGGER.isDebugEnabled()) {
 	    LOGGER.debug("Successfully executed " + description);

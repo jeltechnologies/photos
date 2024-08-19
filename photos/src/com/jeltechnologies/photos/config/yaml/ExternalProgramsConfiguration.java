@@ -7,6 +7,7 @@ public class ExternalProgramsConfiguration implements Serializable {
     private HandbrakeConfiguration handbrake = new HandbrakeConfiguration();
     private ExternalProgramConfiguration ffmpeg = new ExternalProgramConfiguration();
     private ExternalProgramConfiguration imagemagick = new ExternalProgramConfiguration();
+    private ExternalProgramConfiguration exiftool = new ExternalProgramConfiguration();
 
     public HandbrakeConfiguration getHandbrake() {
         return handbrake;
@@ -31,6 +32,14 @@ public class ExternalProgramsConfiguration implements Serializable {
     public void setImagemagick(ExternalProgramConfiguration imagemagick) {
         this.imagemagick = imagemagick;
     }
+    
+    public ExternalProgramConfiguration getExiftool() {
+        return exiftool;
+    }
+
+    public void setExiftool(ExternalProgramConfiguration exiftool) {
+        this.exiftool = exiftool;
+    }
 
     @Override
     public String toString() {
@@ -41,7 +50,11 @@ public class ExternalProgramsConfiguration implements Serializable {
 	builder.append(ffmpeg);
 	builder.append(", imagemagick=");
 	builder.append(imagemagick);
+	builder.append(", exiftool=");
+	builder.append(exiftool);
 	builder.append("]");
 	return builder.toString();
     }
+
+
 }

@@ -180,6 +180,10 @@ public class ConfigurationManager implements Serializable {
     public boolean isCanConvertApplePhotos() {
 	return config.getConverters().getImagemagick().executableExists();
     }
+    
+    public boolean isCanUseExifTool() {
+	return config.getConverters().getExiftool().executableExists();
+    }
 
     public int getNrOfThumbnailsConsumers() {
 	return config.getDimensioning().getPhotoThreads();
@@ -236,6 +240,10 @@ public class ConfigurationManager implements Serializable {
     
     public RefreshConfiguration getRefreshConfiguration() {
 	return config.getRefresh();
+    }
+    
+    public File getExifToolExecutable() {
+	return config.getConverters().getExiftool().getExecutable();
     }
 
 }

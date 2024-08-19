@@ -135,6 +135,9 @@ public class BackgroundServices {
 
     private void scheduleProducers() {
 	Producer producerCompleteRefresh = createProducer(Producer.Type.COMPLETE_REFRESH);
+	//Producer producerCompleteRefresh = createTestProducer(Producer.Type.COMPLETE_REFRESH);
+	
+	
 	RefreshConfiguration refreshConfiguration = Environment.INSTANCE.getConfig().getRefreshConfiguration();
 	if (refreshConfiguration.isAllAtStarup()) {
 	    threadService.execute(producerCompleteRefresh);
@@ -149,7 +152,7 @@ public class BackgroundServices {
 	    LOGGER.info("Scheduled a daily complete refresh at " + hour + ":" + minute);
 	}
     }
-
+    
     private Producer createProducer(Producer.Type type) {
 	Producer producer = new Producer("Photos-Thumbnails-Producer", type);
 	producer.add(getAlbumsPhotosFolder());
@@ -159,6 +162,29 @@ public class BackgroundServices {
 	LOGGER.info(producer.toString());
 	return producer;
     }
+    
+    private Producer createTestProducer(Producer.Type type) {
+	File testFolder = new File("D:\\Projects\\Photos\\Originals\\Albums\\2024\\2024-07");
+	
+	ProduceFolder photosFolder = new ProduceFolder();
+	photosFolder.setFilenameFilter(new PhotosFileNameFilter(Environment.PHOTO_EXTENSIONS));
+	photosFolder.setRole(RoleModel.ROLE_USER);
+	photosFolder.setFolder(testFolder);
+	photosFolder.setQueue(thumbsQueue);
+	
+	ProduceFolder videosFolder = new ProduceFolder();
+	videosFolder.setFilenameFilter(new PhotosFileNameFilter(Environment.VIDEO_EXTENSIONS));
+	videosFolder.setRole(RoleModel.ROLE_USER);
+	videosFolder.setFolder(testFolder);
+	videosFolder.setQueue(videoQueue);
+	
+	Producer producer = new Producer("Photos-Thumbnails-Producer", type);
+	producer.add(photosFolder);
+	producer.add(videosFolder);
+	LOGGER.info(producer.toString());
+	return producer;
+    }
+    
 
     private ProduceFolder getAlbumsPhotosFolder() {
 	ProduceFolder folder = new ProduceFolder();

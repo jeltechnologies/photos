@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -32,12 +33,13 @@ import com.jeltechnologies.photos.datatypes.usermodel.Role;
 import com.jeltechnologies.photos.datatypes.usermodel.RoleModel;
 import com.jeltechnologies.photos.datatypes.usermodel.User;
 import com.jeltechnologies.photos.db.Query.InAlbum;
+import com.jeltechnologies.photos.exiftool.MetaData;
+import com.jeltechnologies.photos.exiftool.MetaTag;
 import com.jeltechnologies.photos.pictures.Album;
 import com.jeltechnologies.photos.pictures.MediaFile;
 import com.jeltechnologies.photos.pictures.MediaType;
 import com.jeltechnologies.photos.pictures.Photo;
 import com.jeltechnologies.photos.picures.frame.FrameLogLine;
-import com.jeltechnologies.photos.picures.share.SharedFile;
 import com.jeltechnologies.photos.utils.JSONUtilsFactory;
 import com.jeltechnologies.photos.utils.StringUtils;
 
@@ -89,12 +91,20 @@ public class Database implements QuerySupport {
     }
 
     private PreparedStatement getStatement(String sql) throws SQLException {
+	return getStatement(sql, false);
+    }
+
+    private PreparedStatement getStatement(String sql, boolean returnGeneratedKeys) throws SQLException {
 	if (LOGGER.isDebugEnabled()) {
 	    LOGGER.debug("getStatement sql: " + sql);
 	}
 	PreparedStatement statement = this.usedPreparedStatements.get(sql);
 	if (statement == null) {
-	    statement = connection.prepareStatement(sql);
+	    if (returnGeneratedKeys) {
+		statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+	    } else {
+		statement = connection.prepareStatement(sql);
+	    }
 	    this.usedPreparedStatements.put(sql, statement);
 	}
 	statement.clearParameters();
@@ -129,15 +139,15 @@ public class Database implements QuerySupport {
 	executeSQL(DBSQL.CREATE_PHOTOS_TABLE);
 	executeSQL(DBSQL.CREATE_ALBUMS_TABLE);
 	executeSQL(DBSQL.CREATE_FILES_TABLE);
+	executeSQL(DBSQL.CREATE_META_TAG_TABLE);
+	executeSQL(DBSQL.CREATE_META_TABLE);
 	executeSQL(DBSQL.CREATE_PREFERENCES_TABLE);
-	executeSQL(DBSQL.CREATE_SHARES_TABLE);
 	executeSQL(DBSQL.CREATE_FRAME_LOGLINES_TABLE);
 	for (String sql : DBSQL.getIndexesSQL()) {
 	    executeSQL(sql);
 	}
 	connection.commit();
 	connection.setAutoCommit(true);
-
 	for (String sql : DBSQL.cleanDatabaseSQL()) {
 	    executeSQL(sql);
 	}
@@ -325,7 +335,7 @@ public class Database implements QuerySupport {
 	    DBUtils.close(rs);
 	}
     }
-    
+
     public List<Photo> getAllPhotos() throws SQLException {
 	ResultSet rs = null;
 	List<Photo> photos = new ArrayList<Photo>();
@@ -337,7 +347,7 @@ public class Database implements QuerySupport {
 	    while (rs.next()) {
 		photo = parsePhotoFull(rs);
 		photos.add(photo);
-	    } 
+	    }
 	} finally {
 	    DBUtils.close(rs);
 	}
@@ -746,7 +756,7 @@ public class Database implements QuerySupport {
 
 //	4 se.append(" p.dateTaken,");
 	column++;
-	p.setDateTaken(DBUtils.getDateTime(rs, column));
+	p.setDateTaken(DBUtils.getTimestamp(rs, column));
 
 //	5 se.append(" p.thumbWidth,");
 	column++;
@@ -878,7 +888,7 @@ public class Database implements QuerySupport {
 //		4. bi.append(" dateTaken,");
 	    LocalDateTime dateTaken = p.getDateTaken();
 
-	    DBUtils.setTimestamp(st, column, dateTaken);
+	    DBUtils.setDateTime(st, column, dateTaken);
 	    column++;
 
 //		5. bi.append(" thumbWidth,");
@@ -961,6 +971,8 @@ public class Database implements QuerySupport {
 	    }
 
 	    st.executeUpdate();
+	    updateMetaData(p);
+
 	} finally {
 	    DBUtils.close(rsAlbum);
 	}
@@ -1210,38 +1222,6 @@ public class Database implements QuerySupport {
 	return result;
     }
 
-    public SharedFile getSharedFile(String uuid) throws SQLException {
-	String sql = "SELECT uuid, photos_id, expirationdate, creationdate, username FROM shares WHERE uuid=?";
-	ResultSet rs = null;
-	try {
-	    PreparedStatement ps = getStatement(sql);
-	    ps.setString(1, uuid);
-	    rs = ps.executeQuery();
-	    SharedFile sharedFile = null;
-	    if (rs.next()) {
-		LocalDateTime expirationDate = DBUtils.getDateTime(rs, 3);
-		LocalDateTime creationDate = DBUtils.getDateTime(rs, 4);
-		sharedFile = new SharedFile(rs.getString(1), rs.getString(2), expirationDate, creationDate, rs.getString(5));
-	    }
-	    return sharedFile;
-	} finally {
-	    if (rs != null) {
-		rs.close();
-	    }
-	}
-    }
-
-    public void addSharedFile(SharedFile sharedFile) throws SQLException {
-	String sql = "INSERT INTO shares (uuid, photos_id, expirationdate, creationdate, username) VALUES (?,?,?,?,?);";
-	PreparedStatement ps = getStatement(sql);
-	ps.setString(1, sharedFile.uuid());
-	ps.setString(2, sharedFile.photoId());
-	DBUtils.setTimestamp(ps, 4, sharedFile.expirationDate());
-	DBUtils.setTimestamp(ps, 3, sharedFile.creationDate());
-	ps.setString(5, sharedFile.username());
-	ps.executeUpdate();
-    }
-
     public void setPreferences(String userName, Preferences preferences) throws SQLException {
 	Preferences existing = getPreferences(userName);
 	try {
@@ -1465,7 +1445,7 @@ public class Database implements QuerySupport {
 //	b.append(" dateTaken = ?,");
 
 	LocalDateTime dateTaken = p.getDateTaken();
-	DBUtils.setTimestamp(st, column, dateTaken);
+	DBUtils.setDateTime(st, column, dateTaken);
 	column++;
 
 //	b.append(" thumbWidth = ?,");
@@ -1554,17 +1534,19 @@ public class Database implements QuerySupport {
 
 	int rows = st.executeUpdate();
 
+	updateMetaData(p);
+
 	if (rows != 1) {
 	    LOGGER.warn("Rolling back. Cannot update " + rows + " at once, can only update one row at the time");
 	    rollback();
 	}
     }
-    
+
     public void addLogLine(FrameLogLine line) throws SQLException {
 	String sql = "INSERT INTO frameloglines (timestamp, message, program, percentage, username, id, session) VALUES (?,?,?,?,?,?,?);";
 	PreparedStatement st = getStatement(sql);
 	st.clearParameters();
-	DBUtils.setTimestamp(st, 1, line.getTimestamp());
+	DBUtils.setDateTime(st, 1, line.getTimestamp());
 	st.setString(2, line.getMessage());
 	st.setString(3, line.getProgram());
 	st.setInt(4, line.getPercentage());
@@ -1572,6 +1554,86 @@ public class Database implements QuerySupport {
 	st.setString(6, line.getId());
 	st.setString(7, line.getSessionId());
 	st.executeUpdate();
+    }
+
+    public void updateMetaData(Photo photo) throws SQLException {
+	MetaData meta = photo.getMetaData();
+	if (meta != null) {
+	    String deleteSql = "DELETE FROM meta WHERE photos_id=?";
+	    PreparedStatement deleteStatement = getStatement(deleteSql);
+	    deleteStatement.setString(1, photo.getId());
+	    int rows = deleteStatement.executeUpdate();
+	    if (LOGGER.isDebugEnabled()) {
+		LOGGER.debug("Deleted " + rows + " metadata rows for id " + photo.getId());
+	    }
+	    String insertSql = "INSERT INTO meta (photos_id, tags_id, contents) VALUES (?, ?, ?);";
+	    PreparedStatement insertSt = getStatement(insertSql);
+	    for (MetaTag tag : meta.tags()) {
+		insertSt.clearParameters();
+		insertSt.setString(1, photo.getId());
+		int tagId = getMetaTagId(tag.name());
+		insertSt.setInt(2, tagId);
+		insertSt.setString(3, tag.value());
+		if (LOGGER.isTraceEnabled()) {
+		    LOGGER.trace("Adding " + photo.getId() + ", " + tag.name() + ", " + tag.value());
+		}
+		insertSt.executeUpdate();
+	    }
+	}
+    }
+
+    public void getMetaData(Photo photo) throws SQLException {
+	String sql = """
+		SELECT mt.tag,m.contents
+		FROM photos p
+		INNER JOIN meta m ON m.photos_id=p.id
+		INNER JOIN metatags mt ON m.tags_id=mt.id
+		WHERE p.id=?
+		 """;
+	PreparedStatement st = getStatement(sql);
+	st.setString(1, photo.getId());
+	ResultSet rs = null;
+	try {
+	    rs = st.executeQuery();
+	    List<MetaTag> tags = new ArrayList<MetaTag>();
+	    while (rs.next()) {
+		tags.add(new MetaTag(rs.getString(1), rs.getString(2)));
+	    }
+	    MetaData metaData = new MetaData(tags);
+	    photo.setMetaData(metaData);
+	} finally {
+	    DBUtils.close(rs);
+	}
+    }
+
+    private int getMetaTagId(String name) throws SQLException {
+	String selectSQL = "SELECT id FROM metatags WHERE tag=?";
+	PreparedStatement stSelect = getStatement(selectSQL);
+	stSelect.setString(1, name);
+	int id;
+	ResultSet rs1 = null;
+	ResultSet keys = null;
+	try {
+	    rs1 = stSelect.executeQuery();
+	    if (rs1.next()) {
+		id = rs1.getInt(1);
+	    } else {
+		String insertSQL = "INSERT INTO metatags (tag) VALUES (?)";
+		PreparedStatement inSt = getStatement(insertSQL, true);
+		inSt.setString(1, name);
+		inSt.executeUpdate();
+		keys = inSt.getGeneratedKeys();
+		if (keys.next()) {
+		    id = keys.getInt(1);
+		} else {
+		    throw new IllegalStateException("Cannot retrieve generated PK for tag " + name);
+		}
+	    }
+	} finally {
+	    DBUtils.close(rs1);
+	    DBUtils.close(keys);
+	}
+	return id;
     }
 
 }

@@ -5,17 +5,26 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.jeltechnologies.geoservices.datamodel.Coordinates;
 import com.jeltechnologies.photos.Environment;
 import com.jeltechnologies.photos.background.BackgroundServices;
 import com.jeltechnologies.photos.datatypes.usermodel.User;
 import com.jeltechnologies.photos.db.Database;
+import com.jeltechnologies.photos.exiftool.ExifToolDateUtils;
+import com.jeltechnologies.photos.exiftool.ExifToolGpsGrabber;
+import com.jeltechnologies.photos.exiftool.ExifToolGrabber;
+import com.jeltechnologies.photos.exiftool.MetaData;
 import com.jeltechnologies.photos.pictures.MediaFile;
 import com.jeltechnologies.photos.pictures.MediaQueue;
 import com.jeltechnologies.photos.pictures.MediaType;
@@ -27,6 +36,7 @@ import com.jeltechnologies.photos.picures.map.geoservice.LocationUpdateException
 import com.jeltechnologies.photos.picures.map.geoservice.PhotoAddressUpdater;
 import com.jeltechnologies.photos.timeline.TimeLineTurboCache;
 import com.jeltechnologies.photos.utils.FileUtils;
+import com.jeltechnologies.photos.utils.StringUtils;
 
 public abstract class AbstractConsumer implements Runnable {
 
@@ -42,13 +52,15 @@ public abstract class AbstractConsumer implements Runnable {
 
     private final static boolean FORCE_LOCATION_UPDATE = false;
 
+    private final static boolean FORCE_UPDATE_EXIF = false;
+
     private final static boolean LOCATION_SERVICE_CONFIGURED = ENV.getConfig().isGeoServicesConfigured();
+
+    private final static boolean EXIFTOOL_CONFIGURED = ENV.getConfig().isCanUseExifTool();
 
     private final MediaQueue queue;
 
     private final String threadName;
-
-    protected String id;
 
     protected final NotWorkingFiles notWorkingFiles;
 
@@ -141,7 +153,7 @@ public abstract class AbstractConsumer implements Runnable {
 	    } catch (Throwable t) {
 		String errorMessage = queuedMediaFile.getFile().getName() + " error " + t.getMessage();
 		if (LOGGER.isInfoEnabled()) {
-		    LOGGER.info(errorMessage);
+		    LOGGER.info(errorMessage, t);
 		} else {
 		    LOGGER.warn(errorMessage, t);
 		}
@@ -190,21 +202,43 @@ public abstract class AbstractConsumer implements Runnable {
 	    LOGGER.trace("consumeFile " + photoFile);
 	}
 	boolean cacheMustBeCleared = false;
-	boolean fileWasChanged = getFileIdAndCheckChanged();
-	photo = getDatabase().getPhotoById(id);
+	File diskFile = queuedMediaFile.getFile();
+
+	boolean fileChanged;
+	String relativeFileName = ENV.getRelativePhotoFileName(diskFile);
+	MediaFile dbFile = getDatabase().getMediaFile(relativeFileName);
+	if (dbFile == null) {
+	    fileChanged = true;
+	} else {
+	    fileChanged = dbFile.getSize() != diskFile.length() || dbFile.getFileLastModified() != diskFile.lastModified();
+	}
+	String photoId;
+	if (fileChanged) {
+	    photoId = FileUtils.createMD5Checksum(diskFile);
+	} else {
+	    photoId = dbFile.getId();
+	}
+
+	photo = getDatabase().getPhotoById(photoId);
 	boolean newPhoto = (photo == null);
 	if (newPhoto || queuedMediaFile.getType() == Producer.Type.COMPLETE_REFRESH) {
 	    Photo beforeChange;
 	    if (newPhoto) {
-		photo = new Photo(id, getMediaType());
+		photo = new Photo(photoId, getMediaType());
 		beforeChange = null;
 	    } else {
-		beforeChange = getDatabase().getPhotoById(id);
+		beforeChange = getDatabase().getPhotoById(photoId);
 	    }
+
 	    updateFileInPhoto();
 	    if (cacheFolderOK()) {
+		database.getMetaData(photo);
+		if (newPhoto || photo.getMetaData() == null || FORCE_UPDATE_EXIF) {
+		    if (EXIFTOOL_CONFIGURED) {
+			updateExifMetaData(photoFile);
+		    }
+		}
 		handleFile(newPhoto);
-		fixDateTaken();
 		updateLocation();
 		if (newPhoto) {
 		    getDatabase().createPhoto(photo);
@@ -216,7 +250,7 @@ public abstract class AbstractConsumer implements Runnable {
 			    LOGGER.debug("After : " + photo.toString());
 			    LOGGER.debug("Updating changed photo in database " + photo.getRelativeFileName());
 			}
-			
+
 			getDatabase().updatePhoto(photo);
 			cacheMustBeCleared = true;
 		    } else {
@@ -229,7 +263,7 @@ public abstract class AbstractConsumer implements Runnable {
 		LOGGER.warn("Cache folder does not exist for " + photo.getId());
 	    }
 	}
-	if (fileWasChanged) {
+	if (fileChanged) {
 	    cacheMustBeCleared = true;
 	    addFileToDatabase();
 	}
@@ -241,42 +275,107 @@ public abstract class AbstractConsumer implements Runnable {
 	}
     }
 
+    private void updateExifMetaData(File photoFile) throws IOException, InterruptedException {
+	ExifToolGpsGrabber gpsGrabber = new ExifToolGpsGrabber(photoFile);
+	Coordinates coordinates = gpsGrabber.getCoordinates();
+	photo.setCoordinates(coordinates);
+	ExifToolGrabber exifGrabber = new ExifToolGrabber(photoFile);
+	MetaData meta = exifGrabber.getMetaData();
+	photo.setMetaData(meta);
+
+	String make = meta.getValue("Make");
+	String model = meta.getValue("Camera Model Name");
+	String source = null;
+	if (make != null && model != null) {
+	    source = make + " " + model;
+	} else {
+	    if (model != null) {
+		source = model;
+	    }
+	}
+	photo.setSource(source);
+	String orientationString = meta.getValue("Orientation");
+	int orientation = 0;
+	if (orientationString != null) {
+	    orientation = Integer.parseInt(orientationString);
+	}
+	photo.setOrientation(orientation);
+
+	int duration = 0;
+	String durationString = meta.getValue("Duration");
+	try {
+	    if (durationString != null) {
+		int sPos = durationString.indexOf('s');
+		if (sPos > 0) {
+		    // 29.03 s
+		    String secondsString = durationString.substring(0, sPos);
+		    Double secondsDouble = Double.parseDouble(secondsString);
+		    long secondsLong = Math.round(secondsDouble);
+		    duration = (int) secondsLong;
+		} else {
+		    // 0:01:24
+		    int doublePointPos = durationString.indexOf(":");
+		    if (doublePointPos > 0) {
+			List<String> parts = StringUtils.split(durationString, ':');
+			int hourPart = Integer.parseInt(parts.get(0));
+			int minutePart = Integer.parseInt(parts.get(1));
+			int secondsPart = Integer.parseInt(parts.get(2));
+			duration = (hourPart * 3600) + (minutePart * 60) + secondsPart;
+		    } else {
+			LOGGER.warn("Cannot parse duration: " + durationString + " in " + photoFile);
+		    }
+		}
+	    }
+	} catch (Exception e) {
+	    LOGGER.warn("Parse error for duration: " + durationString + " in " + photoFile, e);
+	}
+	photo.setDuration(duration);
+
+	ZonedDateTime dateTaken = null;
+	try {
+	    String gpsDateTime = meta.getValue("GPS Date/Time");
+	    if (gpsDateTime != null) {
+		dateTaken = ExifToolDateUtils.parseDateTime(gpsDateTime);
+	    } else {
+		String dateTimeOriginal = meta.getValue("Date/Time Original");
+		if (dateTimeOriginal != null) {
+		    dateTaken = ExifToolDateUtils.parseDateTime(dateTimeOriginal);
+		} else {
+		    String modifyDate = meta.getValue("Modify Date");
+		    if (modifyDate != null) {
+			dateTaken = ExifToolDateUtils.parseDateTime(modifyDate);
+		    }
+		}
+	    }
+	} catch (Exception e) {
+	    LOGGER.warn("Error parsing datatime from file " + photoFile);
+	}
+	long lastModified = photoFile.lastModified();
+	ZonedDateTime fallBackdateLastModified = Instant.ofEpochMilli(lastModified).atZone(ZoneId.systemDefault());
+	if (dateTaken == null) {
+	    dateTaken = fallBackdateLastModified;
+	}
+
+	// TODO may be also store time zone in PostgresSQL in future
+	ZonedDateTime dateTakenLocalZoned = dateTaken.withZoneSameInstant(ZoneId.systemDefault());
+	LocalDateTime dateTakenDateTime = LocalDateTime.from(dateTakenLocalZoned);
+	if (impossibleDate(dateTakenDateTime)) {
+	    dateTakenDateTime = LocalDateTime.from(fallBackdateLastModified);
+	}
+	photo.setDateTaken(dateTakenDateTime);
+    }
+
+    private boolean impossibleDate(LocalDateTime dateTaken) {
+	LocalDateTime latestPossible = LocalDateTime.now().plusMonths(1);
+	return dateTaken == null || dateTaken.isBefore(EARLIEST_POSSIBLE) || dateTaken.isAfter(latestPossible);
+    }
+
     private boolean cacheFolderOK() {
 	File cache = thumbUtils.getCacheFolder(photo);
 	if (!cache.exists()) {
 	    cache.mkdirs();
 	}
 	return cache.isDirectory();
-    }
-
-    private void fixDateTaken() throws IOException {
-	if (photo.getDateTaken() == null) {
-	    File file = queuedMediaFile.getFile();
-	    LocalDateTime modified = FileUtils.getLastModifiedTime(file);
-	    photo.setDateTaken(modified);
-	}
-    }
-
-    protected boolean impossibleDate(LocalDateTime dateTaken) {
-	LocalDateTime latestPossible = LocalDateTime.now().plusMonths(1);
-	return dateTaken == null || dateTaken.isBefore(EARLIEST_POSSIBLE) || dateTaken.isAfter(latestPossible);
-    }
-
-    private boolean getFileIdAndCheckChanged() throws Exception {
-	boolean same = false;
-	File disk = queuedMediaFile.getFile();
-	String relativeFileName = ENV.getRelativePhotoFileName(disk);
-	MediaFile db = getDatabase().getMediaFile(relativeFileName);
-	same = db != null && db.getSize() == disk.length() && db.getFileLastModified() == disk.lastModified();
-	if (!same) {
-	    id = FileUtils.createMD5Checksum(disk);
-	} else {
-	    id = db.getId();
-	}
-	if (LOGGER.isTraceEnabled()) {
-	    LOGGER.trace("Checksum: " + id);
-	}
-	return !same;
     }
 
     private void addFileToDatabase() throws Exception {
@@ -287,7 +386,7 @@ public abstract class AbstractConsumer implements Runnable {
 	MediaFile newMediaFile = new MediaFile();
 	newMediaFile.setRelativeFileName(relativeFileName);
 	newMediaFile.setRelativeFolderName(relativeFolderName);
-	newMediaFile.setId(id);
+	newMediaFile.setId(photo.getId());
 	newMediaFile.setFileLastModified(disk.lastModified());
 	newMediaFile.setSize(disk.length());
 	newMediaFile.setFileName(disk.getName());
@@ -301,7 +400,7 @@ public abstract class AbstractConsumer implements Runnable {
 	File file = queuedMediaFile.getFile();
 	String relativeFolderName = ENV.getRelativePhotoFileName(file.getParentFile());
 	String relativeFileName = ENV.getRelativePhotoFileName(file);
-	photo.setId(id);
+	photo.setId(photo.getId());
 	photo.setRelativeFileName(relativeFileName);
 	photo.setFileName(file.getName());
 	photo.setRelativeFolderName(relativeFolderName);

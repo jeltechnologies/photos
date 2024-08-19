@@ -2,9 +2,6 @@ package com.jeltechnologies.photos.background.thumbs;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -12,12 +9,9 @@ import org.slf4j.LoggerFactory;
 
 import com.jeltechnologies.photos.Environment;
 import com.jeltechnologies.photos.datatypes.Dimension;
-import com.jeltechnologies.photos.pictures.JPEGMetaDataDrewnOakes;
-import com.jeltechnologies.photos.pictures.JPEGMetaDataJavaXT;
 import com.jeltechnologies.photos.pictures.MediaQueue;
 import com.jeltechnologies.photos.pictures.MediaType;
 import com.jeltechnologies.photos.pictures.Photo;
-import com.jeltechnologies.photos.pictures.PhotoJPEGDataUpdater;
 import com.jeltechnologies.photos.pictures.PhotoRotation;
 import com.jeltechnologies.photos.utils.FileUtils;
 import com.jeltechnologies.photos.utils.ImageUtils;
@@ -30,7 +24,11 @@ public class ThumbnailsConsumer extends AbstractConsumer implements ThumbnailsCo
 
     private final static boolean APPLE_HEIC_CONVERTER_AVAILABLE = ENV.getConfig().isCanConvertApplePhotos();
 
-    private final List<Dimension> dimensions = Environment.INSTANCE.getAllThumbnailDimensions();
+    private final static List<Dimension> DIMENSIONS = Environment.INSTANCE.getAllThumbnailDimensions();
+    
+    private final static Dimension ORIGINAL_DIMENSION = Environment.INSTANCE.getDimensionOriginal();
+
+    private static final boolean ROTATE_HEIC_THUMBNAILS = false;
 
     public ThumbnailsConsumer(MediaQueue queue, String threadName, NotWorkingFiles notWorkingFiles, boolean moveFailedFiles) {
 	super(queue, threadName, notWorkingFiles, moveFailedFiles);
@@ -42,32 +40,21 @@ public class ThumbnailsConsumer extends AbstractConsumer implements ThumbnailsCo
 
     protected void handleFile(boolean newPhoto) throws Exception {
 	makeThumbnailsIfNeeded();
-	
-	//enforceUpdatingCoordinates();
-	
-	if (newPhoto) {
-	    makeThumbnailsIfNeeded();
-	    updateThumbDimensions();
-	} else {
-	    makeThumbnailsIfNeeded();
-	}
-    }
-    
-    @SuppressWarnings("unused")
-    private void enforceUpdatingCoordinates() {
-	File thumbFile = thumbUtils.getThumbFile(Environment.INSTANCE.getDimensionOriginal(), photo);
-	getJPGMetadata(thumbFile);
     }
 
     private void makeThumbnailsIfNeeded() throws IOException, InterruptedException {
 	if (LOGGER.isTraceEnabled()) {
 	    LOGGER.trace("makeThumbnailsIfNeeded: " + photo);
 	}
-	for (Dimension dimension : dimensions) {
+	for (Dimension dimension : DIMENSIONS) {
 	    File thumbFile = thumbUtils.getThumbFile(dimension, photo);
-	    if (!thumbFile.isFile()) {
+	    if (!thumbFile.isFile()) { //   || photo.getRelativeFolderName().endsWith("2024-07")) { // for testing
 		makeThumb(thumbFile, dimension, photo);
 	    }
+	}
+	if (photo.getThumbHeight() == 0 || photo.getThumbWidth() == 0) {
+	    File thumbFile = thumbUtils.getThumbFile(ORIGINAL_DIMENSION, photo);
+	    getJPGSize(thumbFile);
 	}
     }
 
@@ -75,7 +62,6 @@ public class ThumbnailsConsumer extends AbstractConsumer implements ThumbnailsCo
 	if (Thread.interrupted()) {
 	    throw new InterruptedException();
 	}
-
 	File imageFile = queuedMediaFile.getFile();
 	if (LOGGER.isDebugEnabled()) {
 	    LOGGER.debug("Creating thumbFile for ORIGINAL " + imageFile + " to " + thumbFile + "  " + ", with orientation " + photo.getOrientation());
@@ -89,7 +75,7 @@ public class ThumbnailsConsumer extends AbstractConsumer implements ThumbnailsCo
 			File tempHeicFile = new File(nameWithoutExtension + ".HEIC");
 			FileUtils.copyFile(imageFile, tempHeicFile, true);
 			File thumbJpg = new ApplePhotosConverter(tempHeicFile).getConvertedFile();
-			getJPGMetadata(thumbJpg);
+			getJPGSize(thumbJpg);
 			tempHeicFile.delete();
 		    } else {
 			LOGGER.debug("Apple HEIC converter not available, cannot convert " + photo.getRelativeFileName());
@@ -98,20 +84,28 @@ public class ThumbnailsConsumer extends AbstractConsumer implements ThumbnailsCo
 		    checkJpgLoadsOK(imageFile);
 		    FileUtils.copyFile(imageFile, thumbFile, true);
 		    if (queuedMediaFile.isJpg()) {
-			getJPGMetadata(thumbFile);
+			getJPGSize(thumbFile);
 		    }
 		}
 		break;
 	    }
 	    default: {
 		File jpg;
+		boolean mustRotate;
 		if (queuedMediaFile.isApple()) {
 		    jpg = thumbUtils.getThumbFile(ENV.getDimensionOriginal(), photo);
+		    mustRotate = ROTATE_HEIC_THUMBNAILS;
 		} else {
 		    jpg = imageFile;
+		    mustRotate = true;
 		}
-		PhotoRotation rotation = PhotoRotation.getRotation(photo.getOrientation());
-		Image image = ImageUtils.fixOrientation(jpg, rotation);
+		Image image;
+		if (mustRotate) {
+		    PhotoRotation rotation = PhotoRotation.getRotation(photo.getOrientation());
+		    image = ImageUtils.fixOrientation(jpg, rotation);
+		} else {
+		    image = new Image(jpg);
+		}
 
 		if (image == null || image.getBufferedImage() == null) {
 		    String errorMessage = "Image could not be loaded: " + photo.getRelativeFileName();
@@ -150,42 +144,11 @@ public class ThumbnailsConsumer extends AbstractConsumer implements ThumbnailsCo
 	}
     }
 
-    private void getJPGMetadata(File jpgFile) {
-	PhotoJPEGDataUpdater metaData = new JPEGMetaDataJavaXT(jpgFile);
-	metaData.addMetaData(photo);
-
-	LocalDateTime dateTaken = photo.getDateTaken();
-	if (impossibleDate(dateTaken)) {
-	    // Fallback on second option
-	    JPEGMetaDataDrewnOakes drewnOakes;
-	    try {
-		drewnOakes = new JPEGMetaDataDrewnOakes(jpgFile);
-		dateTaken = drewnOakes.getDateTaken();
-		if (impossibleDate(dateTaken)) {
-		    long lastModified = jpgFile.lastModified();
-		    LocalDateTime dateLastModified = Instant.ofEpochMilli(lastModified).atZone(ZoneId.systemDefault()).toLocalDateTime();
-		    photo.setDateTaken(dateLastModified);
-		} else {
-		    photo.setDateTaken(dateTaken);
-		}
-
-	    } catch (IOException e) {
-		LOGGER.warn("Cannot get the dateTaken EXIF from " + jpgFile);
-	    }
+    private void getJPGSize(File jpgFile) {
+	Image image = new Image(jpgFile);
+	if (image != null) {
+	    photo.setThumbWidth(image.getWidth());
+	    photo.setThumbHeight(image.getHeight());
 	}
     }
-
-    private void updateThumbDimensions() {
-	File thumbFile = thumbUtils.getThumbFile(Environment.INSTANCE.getDimensionFullscreen(), photo);
-	if (thumbFile.isFile()) {
-	    Image image = new Image(thumbFile);
-	    if (image != null) {
-		photo.setThumbWidth(image.getWidth());
-		photo.setThumbHeight(image.getHeight());
-	    }
-	} else {
-	    LOGGER.warn("Cannot find dimensions because cannot find thumbfile " + thumbFile);
-	}
-    }
-
 }

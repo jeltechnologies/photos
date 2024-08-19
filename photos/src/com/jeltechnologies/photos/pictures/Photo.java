@@ -7,6 +7,7 @@ import java.util.Objects;
 import com.jeltechnologies.geoservices.datamodel.Address;
 import com.jeltechnologies.geoservices.datamodel.Coordinates;
 import com.jeltechnologies.geoservices.datamodel.Distance;
+import com.jeltechnologies.photos.exiftool.MetaData;
 
 public class Photo implements Serializable {
     private static final long serialVersionUID = -6797925421264802006L;
@@ -27,6 +28,7 @@ public class Photo implements Serializable {
     private Coordinates coordinates;
     private Address address;
     private Distance distanceFromAddress;
+    private MetaData metaData;
 
     public Photo() {
     }
@@ -168,6 +170,14 @@ public class Photo implements Serializable {
 	return type;
     }
 
+    public MetaData getMetaData() {
+        return metaData;
+    }
+
+    public void setMetaData(MetaData metaData) {
+        this.metaData = metaData;
+    }
+
     @Override
     public String toString() {
 	return "Photo [id=" + id + ", type=" + type + ", fileName=" + fileName + ", relativeFileName=" + relativeFileName + ", relativeFolderName="
@@ -196,7 +206,7 @@ public class Photo implements Serializable {
 		&& hidden == other.hidden && Objects.equals(id, other.id) && Objects.equals(label, other.label) && livePhoto == other.livePhoto
 		&& orientation == other.orientation && Objects.equals(relativeFileName, other.relativeFileName)
 		&& Objects.equals(relativeFolderName, other.relativeFolderName) && Objects.equals(source, other.source) && thumbHeight == other.thumbHeight
-		&& thumbWidth == other.thumbWidth && type == other.type;
+		&& thumbWidth == other.thumbWidth && type == other.type && Objects.equals(metaData, other.metaData);
     }
 
     /**
@@ -217,6 +227,7 @@ public class Photo implements Serializable {
 		&& Objects.equals(coordinates, other.coordinates)
 		&& Objects.equals(dateTaken, other.dateTaken)
 		&& Objects.equals(distanceFromAddress, other.distanceFromAddress)
+		&& Objects.equals(metaData, other.metaData)
 		&& duration == other.duration
 		&& hidden == other.hidden
 		&& Objects.equals(id, other.id)

@@ -3,6 +3,7 @@ package com.jeltechnologies.photos.background.sftp.client;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 
@@ -88,6 +89,7 @@ public class SyncThread implements Runnable, SyncThreadMBean {
 		    InputStream in = null;
 		    try {
 			in = ftp.getInputStream(file);
+			Path temporaryTargetPath = new File(targetFile.getParentFile(), targetFile.getName() + ".tmp").toPath();	
 			status = "Copying " + file.getName() + " to " + targetFile;
 			File parentFolder = targetFile.getParentFile();
 			if (!parentFolder.exists()) {
@@ -96,7 +98,8 @@ public class SyncThread implements Runnable, SyncThreadMBean {
 				LOGGER.error("Cannot make folder " + parentFolder);
 			    }
 			}
-			Files.copy(in, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+			Files.copy(in, temporaryTargetPath, StandardCopyOption.REPLACE_EXISTING);
+			Files.move(temporaryTargetPath, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 			if (LOGGER.isDebugEnabled()) {
 			    LOGGER.debug("Copied " + file.getName() + " to " + targetFile);
 			}
