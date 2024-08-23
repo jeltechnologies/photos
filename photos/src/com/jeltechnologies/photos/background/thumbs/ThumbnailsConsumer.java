@@ -11,7 +11,6 @@ import com.jeltechnologies.photos.Environment;
 import com.jeltechnologies.photos.datatypes.Dimension;
 import com.jeltechnologies.photos.pictures.MediaQueue;
 import com.jeltechnologies.photos.pictures.MediaType;
-import com.jeltechnologies.photos.pictures.Photo;
 import com.jeltechnologies.photos.pictures.PhotoRotation;
 import com.jeltechnologies.photos.utils.FileUtils;
 import com.jeltechnologies.photos.utils.ImageUtils;
@@ -30,41 +29,41 @@ public class ThumbnailsConsumer extends AbstractConsumer implements ThumbnailsCo
 
     private static final boolean ROTATE_HEIC_THUMBNAILS = false;
 
-    public ThumbnailsConsumer(MediaQueue queue, String threadName, NotWorkingFiles notWorkingFiles, boolean moveFailedFiles) {
-	super(queue, threadName, notWorkingFiles, moveFailedFiles);
+    public ThumbnailsConsumer(MediaQueue queue, String threadName, boolean moveFailedFiles) {
+	super(queue, threadName, moveFailedFiles);
     }
 
     protected MediaType getMediaType() {
 	return MediaType.PHOTO;
     }
 
-    protected void handleFile(boolean newPhoto) throws Exception {
+    protected void handleFile() throws Exception {
 	makeThumbnailsIfNeeded();
     }
 
     private void makeThumbnailsIfNeeded() throws IOException, InterruptedException {
 	if (LOGGER.isTraceEnabled()) {
-	    LOGGER.trace("makeThumbnailsIfNeeded: " + photo);
+	    LOGGER.trace("makeThumbnailsIfNeeded: " + consumption);
 	}
 	for (Dimension dimension : DIMENSIONS) {
-	    File thumbFile = thumbUtils.getThumbFile(dimension, photo);
-	    if (!thumbFile.isFile()) { //   || photo.getRelativeFolderName().endsWith("2024-07")) { // for testing
-		makeThumb(thumbFile, dimension, photo);
+	    File thumbFile = thumbUtils.getThumbFile(dimension, consumption.getPhoto());
+	    if (!thumbFile.isFile()) { //   || consumption.getRelativeFolderName().endsWith("2024-07")) { // for testing
+		makeThumb(thumbFile, dimension);
 	    }
 	}
-	if (photo.getThumbHeight() == 0 || photo.getThumbWidth() == 0) {
-	    File thumbFile = thumbUtils.getThumbFile(ORIGINAL_DIMENSION, photo);
-	    getJPGSize(thumbFile);
+	if (consumption.getThumbHeight() == 0 || consumption.getThumbWidth() == 0) {
+	    File thumbFile = thumbUtils.getThumbFile(ORIGINAL_DIMENSION, consumption.getPhoto());
+	    updateJPGSize(thumbFile);
 	}
     }
 
-    private void makeThumb(File thumbFile, Dimension dimension, Photo photo) throws IOException, InterruptedException {
+    private void makeThumb(File thumbFile, Dimension dimension) throws IOException, InterruptedException {
 	if (Thread.interrupted()) {
 	    throw new InterruptedException();
 	}
 	File imageFile = queuedMediaFile.getFile();
 	if (LOGGER.isDebugEnabled()) {
-	    LOGGER.debug("Creating thumbFile for ORIGINAL " + imageFile + " to " + thumbFile + "  " + ", with orientation " + photo.getOrientation());
+	    LOGGER.debug("Creating thumbFile for ORIGINAL " + imageFile + " to " + thumbFile + "  " + ", with orientation " + consumption.getOrientation());
 	}
 
 	switch (dimension.getType()) {
@@ -75,16 +74,16 @@ public class ThumbnailsConsumer extends AbstractConsumer implements ThumbnailsCo
 			File tempHeicFile = new File(nameWithoutExtension + ".HEIC");
 			FileUtils.copyFile(imageFile, tempHeicFile, true);
 			File thumbJpg = new ApplePhotosConverter(tempHeicFile).getConvertedFile();
-			getJPGSize(thumbJpg);
+			updateJPGSize(thumbJpg);
 			tempHeicFile.delete();
 		    } else {
-			LOGGER.debug("Apple HEIC converter not available, cannot convert " + photo.getRelativeFileName());
+			LOGGER.debug("Apple HEIC converter not available, cannot convert " + consumption.getRelativeFileName());
 		    }
 		} else {
 		    checkJpgLoadsOK(imageFile);
 		    FileUtils.copyFile(imageFile, thumbFile, true);
 		    if (queuedMediaFile.isJpg()) {
-			getJPGSize(thumbFile);
+			updateJPGSize(thumbFile);
 		    }
 		}
 		break;
@@ -93,7 +92,7 @@ public class ThumbnailsConsumer extends AbstractConsumer implements ThumbnailsCo
 		File jpg;
 		boolean mustRotate;
 		if (queuedMediaFile.isApple()) {
-		    jpg = thumbUtils.getThumbFile(ENV.getDimensionOriginal(), photo);
+		    jpg = thumbUtils.getThumbFile(ENV.getDimensionOriginal(), consumption.getPhoto());
 		    mustRotate = ROTATE_HEIC_THUMBNAILS;
 		} else {
 		    jpg = imageFile;
@@ -101,14 +100,14 @@ public class ThumbnailsConsumer extends AbstractConsumer implements ThumbnailsCo
 		}
 		Image image;
 		if (mustRotate) {
-		    PhotoRotation rotation = PhotoRotation.getRotation(photo.getOrientation());
+		    PhotoRotation rotation = PhotoRotation.getRotation(consumption.getOrientation());
 		    image = ImageUtils.fixOrientation(jpg, rotation);
 		} else {
 		    image = new Image(jpg);
 		}
 
 		if (image == null || image.getBufferedImage() == null) {
-		    String errorMessage = "Image could not be loaded: " + photo.getRelativeFileName();
+		    String errorMessage = "Image could not be loaded: " + consumption.getRelativeFileName();
 		    throw new IllegalArgumentException(errorMessage);
 		} else {
 		    image.setHeight(dimension.getHeight());
@@ -144,11 +143,11 @@ public class ThumbnailsConsumer extends AbstractConsumer implements ThumbnailsCo
 	}
     }
 
-    private void getJPGSize(File jpgFile) {
+    private void updateJPGSize(File jpgFile) {
 	Image image = new Image(jpgFile);
 	if (image != null) {
-	    photo.setThumbWidth(image.getWidth());
-	    photo.setThumbHeight(image.getHeight());
+	    consumption.setThumbWidth(image.getWidth());
+	    consumption.setThumbHeight(image.getHeight());
 	}
     }
 }

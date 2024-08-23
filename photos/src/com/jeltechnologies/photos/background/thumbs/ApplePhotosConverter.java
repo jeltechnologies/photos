@@ -37,7 +37,7 @@ public class ApplePhotosConverter {
 	File exe = ENV.getConfig().getImageMagickExecutable();
 	OperatingSystemCommand command = new OperatingSystemCommand(exe);
 	String exeName = exe.getName();
-	if (exeName.indexOf("mogrify") > -1) {
+	if (exeName.indexOf("magick.exe") > -1) {
 	    command.addArgument("mogrify");
 	    command.addArgument("-quality");
 	    command.addArgument("95%");

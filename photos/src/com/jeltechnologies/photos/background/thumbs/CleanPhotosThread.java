@@ -38,9 +38,12 @@ public class CleanPhotosThread implements Runnable {
     @Override
     public void run() {
 	LOGGER.info(THREAD_NAME + " started");
+	
 	List<Photo> allPhotosWithFiles = null;
-
 	try {
+	    if (moveUneccesaryFiles) {
+		removeNotWorkingOriginals();
+	    }
 	    try {
 		db = new Database();
 		cleanMediaFilesNotFoundOnDisk();
@@ -61,7 +64,12 @@ public class CleanPhotosThread implements Runnable {
 	}
 	LOGGER.info(THREAD_NAME + " ended");
     }
-
+    
+    private void removeNotWorkingOriginals() throws Exception {
+	NotWorkingFiles notWorkingFiles = new NotWorkingFiles();
+	notWorkingFiles.moveAllNotWorkingFiles();
+    }
+    
     private void handleUnnecessayCache(List<Photo> allPhotosWithFiles) throws Exception {
 	List<File> unnecessaryFilesInCache = findUnnecessaryFilesInCache(allPhotosWithFiles);
 	if (!unnecessaryFilesInCache.isEmpty()) {
@@ -76,7 +84,7 @@ public class CleanPhotosThread implements Runnable {
 		    boolean ok;
 		    if (destinationFolder.isDirectory()) {
 			ok = true;
-		    } else {
+		    } else { 
 			ok = destinationFolder.mkdirs();
 			if (!ok) {
 			    LOGGER.warn("Cannot create destination folder: " + destinationFolder);

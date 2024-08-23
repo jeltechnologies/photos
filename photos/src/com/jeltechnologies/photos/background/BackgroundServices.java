@@ -17,7 +17,6 @@ import com.jeltechnologies.photos.background.sftp.server.FileChangeHandler;
 import com.jeltechnologies.photos.background.sftp.server.SFTPServer;
 import com.jeltechnologies.photos.background.sftp.server.SFTPServer.User;
 import com.jeltechnologies.photos.background.thumbs.CleanPhotosThread;
-import com.jeltechnologies.photos.background.thumbs.NotWorkingFiles;
 import com.jeltechnologies.photos.background.thumbs.ProduceFolder;
 import com.jeltechnologies.photos.background.thumbs.Producer;
 import com.jeltechnologies.photos.background.thumbs.ThumbnailsConsumer;
@@ -39,14 +38,15 @@ public class BackgroundServices {
     private static final Logger LOGGER = LoggerFactory.getLogger(BackgroundServices.class);
     private static final JMXUtils JMX = JMXUtils.getInstance();
     private static final Environment ENV = Environment.INSTANCE;
+
     private final ThreadService threadService = new ThreadService();
+
     private MediaQueue thumbsQueue;
     private MediaQueue videoQueue;
-    private NotWorkingFiles notWorkingFiles = new NotWorkingFiles();
     private final static BackgroundServices INSTANCE = new BackgroundServices();
     private static final boolean START_BACKGROUND_TASKS = ENV.getConfig().isStartBackgroundTasksAtStartup();
     private static final File ROOT_ALBUM = Environment.INSTANCE.getConfig().getAlbumsFolder();
-    private static final boolean MOVE_FAILED_FILES = false;
+    private static final boolean MOVE_FAILED_FILES = true;
     private List<SFTPServer> sftpServers = new ArrayList<SFTPServer>();
     private Producer ongoingProducer = null;
 
@@ -135,9 +135,8 @@ public class BackgroundServices {
 
     private void scheduleProducers() {
 	Producer producerCompleteRefresh = createProducer(Producer.Type.COMPLETE_REFRESH);
-	//Producer producerCompleteRefresh = createTestProducer(Producer.Type.COMPLETE_REFRESH);
-	
-	
+	// Producer producerCompleteRefresh = createTestProducer(Producer.Type.COMPLETE_REFRESH);
+
 	RefreshConfiguration refreshConfiguration = Environment.INSTANCE.getConfig().getRefreshConfiguration();
 	if (refreshConfiguration.isAllAtStarup()) {
 	    threadService.execute(producerCompleteRefresh);
@@ -152,7 +151,7 @@ public class BackgroundServices {
 	    LOGGER.info("Scheduled a daily complete refresh at " + hour + ":" + minute);
 	}
     }
-    
+
     private Producer createProducer(Producer.Type type) {
 	Producer producer = new Producer("Photos-Thumbnails-Producer", type);
 	producer.add(getAlbumsPhotosFolder());
@@ -162,29 +161,29 @@ public class BackgroundServices {
 	LOGGER.info(producer.toString());
 	return producer;
     }
-    
+
+    @SuppressWarnings("unused")
     private Producer createTestProducer(Producer.Type type) {
 	File testFolder = new File("D:\\Projects\\Photos\\Originals\\Albums\\2024\\2024-07");
-	
+
 	ProduceFolder photosFolder = new ProduceFolder();
 	photosFolder.setFilenameFilter(new PhotosFileNameFilter(Environment.PHOTO_EXTENSIONS));
 	photosFolder.setRole(RoleModel.ROLE_USER);
 	photosFolder.setFolder(testFolder);
 	photosFolder.setQueue(thumbsQueue);
-	
+
 	ProduceFolder videosFolder = new ProduceFolder();
 	videosFolder.setFilenameFilter(new PhotosFileNameFilter(Environment.VIDEO_EXTENSIONS));
 	videosFolder.setRole(RoleModel.ROLE_USER);
 	videosFolder.setFolder(testFolder);
 	videosFolder.setQueue(videoQueue);
-	
+
 	Producer producer = new Producer("Photos-Thumbnails-Producer", type);
 	producer.add(photosFolder);
 	producer.add(videosFolder);
 	LOGGER.info(producer.toString());
 	return producer;
     }
-    
 
     private ProduceFolder getAlbumsPhotosFolder() {
 	ProduceFolder folder = new ProduceFolder();
@@ -226,14 +225,14 @@ public class BackgroundServices {
 	int nrOfConsumers = ENV.getConfig().getNrOfThumbnailsConsumers();
 	for (int i = 0; i < nrOfConsumers; i++) {
 	    String threadName = "Photos-ThumbnailsConsumer-" + (i + 1);
-	    ThumbnailsConsumer consumer = new ThumbnailsConsumer(thumbsQueue, threadName, notWorkingFiles, MOVE_FAILED_FILES);
+	    ThumbnailsConsumer consumer = new ThumbnailsConsumer(thumbsQueue, threadName, MOVE_FAILED_FILES);
 	    JMX.registerMBean(threadName, "MediaConsumers", consumer);
 	    threadService.execute(consumer);
 	}
 	int nrOfVideoConsumers = ENV.getConfig().getNrOfVideoConsumers();
 	for (int i = 0; i < nrOfVideoConsumers; i++) {
 	    String threadName = "VideoConsumer-" + (i + 1);
-	    VideoConsumer videoConsumer = new VideoConsumer(videoQueue, threadName, notWorkingFiles, MOVE_FAILED_FILES);
+	    VideoConsumer videoConsumer = new VideoConsumer(videoQueue, threadName, MOVE_FAILED_FILES);
 	    JMX.registerMBean(threadName, "MediaConsumers", videoConsumer);
 	    threadService.execute(videoConsumer);
 	}
@@ -248,7 +247,7 @@ public class BackgroundServices {
 		String folderName = ENV.getRootOriginalFolder() + "/" + ENV.getRelativeRootUncategorized() + "/sftp/";
 		File folder = new File(folderName);
 		List<User> users = new ArrayList<User>();
-		for (SFTPServerUser configUser: serverAccount.getUsers()) {
+		for (SFTPServerUser configUser : serverAccount.getUsers()) {
 		    users.add(new User(configUser.user(), configUser.password()));
 		}
 		server = new SFTPServer(serverAccount.getPort(), folder, users);

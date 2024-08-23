@@ -12,13 +12,11 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.jeltechnologies.photos.Environment;
-
 public class ThreadService implements Serializable {
     private static final long serialVersionUID = -7466494504073151203L;
     private static final Logger LOGGER = LoggerFactory.getLogger(ThreadService.class);
-    private static final int THREAD_POOL_SIZE_SCHEDULE = 100;
-    private static final int THREAD_POOL_SIZE_SESSIONS = THREAD_POOL_SIZE_SCHEDULE + Environment.INSTANCE.getConfig().getNrOfConsumers();
+    private static final int THREAD_POOL_SIZE_SCHEDULE = 50;
+    private static final int THREAD_POOL_SIZE_SESSIONS = 50; 
 
     private ScheduledExecutorService scheduler = null;
     private ExecutorService executor = null;

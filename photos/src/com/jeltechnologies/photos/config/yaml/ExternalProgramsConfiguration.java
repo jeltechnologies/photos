@@ -2,11 +2,18 @@ package com.jeltechnologies.photos.config.yaml;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class ExternalProgramsConfiguration implements Serializable {
     private static final long serialVersionUID = 5381487654649872159L;
+    
     private HandbrakeConfiguration handbrake = new HandbrakeConfiguration();
+    
     private ExternalProgramConfiguration ffmpeg = new ExternalProgramConfiguration();
-    private ExternalProgramConfiguration imagemagick = new ExternalProgramConfiguration();
+    
+    @JsonProperty(value = "apple-heic-to-jpg")
+    private ExternalProgramConfiguration appleHeicToJpg = new ExternalProgramConfiguration();
+    
     private ExternalProgramConfiguration exiftool = new ExternalProgramConfiguration();
 
     public HandbrakeConfiguration getHandbrake() {
@@ -25,12 +32,12 @@ public class ExternalProgramsConfiguration implements Serializable {
         this.ffmpeg = ffmpeg;
     }
 
-    public ExternalProgramConfiguration getImagemagick() {
-        return imagemagick;
+    public ExternalProgramConfiguration getAppleHeicToJpg() {
+        return appleHeicToJpg;
     }
 
-    public void setImagemagick(ExternalProgramConfiguration imagemagick) {
-        this.imagemagick = imagemagick;
+    public void setAppleHeicToJpg(ExternalProgramConfiguration appleHeicToJpg) {
+        this.appleHeicToJpg = appleHeicToJpg;
     }
     
     public ExternalProgramConfiguration getExiftool() {
@@ -48,8 +55,8 @@ public class ExternalProgramsConfiguration implements Serializable {
 	builder.append(handbrake);
 	builder.append(", ffmpeg=");
 	builder.append(ffmpeg);
-	builder.append(", imagemagick=");
-	builder.append(imagemagick);
+	builder.append(", appleHeicToJpg=");
+	builder.append(appleHeicToJpg);
 	builder.append(", exiftool=");
 	builder.append(exiftool);
 	builder.append("]");

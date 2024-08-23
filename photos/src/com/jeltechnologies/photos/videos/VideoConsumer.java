@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import com.jeltechnologies.photos.Environment;
 import com.jeltechnologies.photos.background.thumbs.AbstractConsumer;
-import com.jeltechnologies.photos.background.thumbs.NotWorkingFiles;
 import com.jeltechnologies.photos.config.yaml.HandbrakeConfiguration;
 import com.jeltechnologies.photos.config.yaml.HandbrakeEncodingSettings;
 import com.jeltechnologies.photos.datatypes.Dimension;
@@ -30,31 +29,31 @@ public class VideoConsumer extends AbstractConsumer implements VideoConsumerMBea
     private File videoFile;
     private List<File> createdFiles = null;
 
-    public VideoConsumer(MediaQueue queue, String threadName, NotWorkingFiles notWorkingFiles, boolean moveFailedFiles) {
-	super(queue, threadName, notWorkingFiles, moveFailedFiles);
+    public VideoConsumer(MediaQueue queue, String threadName, boolean moveFailedFiles) {
+	super(queue, threadName, moveFailedFiles);
     }
 
-    protected void handleFile(boolean newVideo) throws Exception {
+    protected void handleFile() throws Exception {
 	videoFile = queuedMediaFile.getFile();
 	if (LOGGER.isTraceEnabled()) {
 	    LOGGER.trace("handleFile() " + videoFile);
 	}
 	createdFiles = new ArrayList<File>();
 	try {
-	    PosterAndCoordinatesFileEncoder ffmpeg = new PosterAndCoordinatesFileEncoder(photo);
-	    if (newVideo || enforceGetMetaData) {
+	    PosterAndCoordinatesFileEncoder ffmpeg = new PosterAndCoordinatesFileEncoder(consumption);
+	    if (consumption.isAdded() || enforceGetMetaData) {
 		ffmpeg.parseMetaData();
 	    }
 
 	    File hq = handbrakeConvertToMP4(new MovieQuality(MovieQuality.Type.HIGH));
 	    handbrakeConvertToMP4(new MovieQuality(MovieQuality.Type.LOW));
 
-	    File posterFile = thumbUtils.getThumbFile(FULL_SCREEN, photo);
-	    if (!posterFile.isFile() || enforceCreatetPosterAndThumb || photo.getThumbHeight() == 0 || photo.getThumbWidth() == 0) {
+	    File posterFile = thumbUtils.getThumbFile(FULL_SCREEN, consumption.getPhoto());
+	    if (!posterFile.isFile() || enforceCreatetPosterAndThumb || consumption.getThumbHeight() == 0 || consumption.getThumbWidth() == 0) {
 		ffmpeg.createPosterAndDimensions(hq, FULL_SCREEN, posterFile);
 		createdFiles.add(posterFile);
 	    }
-	    File thumbFile = thumbUtils.getThumbFile(THUMB, photo);
+	    File thumbFile = thumbUtils.getThumbFile(THUMB, consumption.getPhoto());
 	    if (!thumbFile.isFile() || enforceCreatetPosterAndThumb) {
 		createThumbnail(posterFile, thumbFile);
 		createdFiles.add(thumbFile);
@@ -98,16 +97,16 @@ public class VideoConsumer extends AbstractConsumer implements VideoConsumerMBea
     }
 
     private File handbrakeConvertToMP4(MovieQuality quality) throws VideoConvertException, InterruptedException {
-	File destination = thumbUtils.getConvertedMovie(quality, photo);
+	File destination = thumbUtils.getConvertedMovie(quality, consumption.getPhoto());
 
 	boolean mustConvert = enforceEncoding || !destination.isFile();
 	
 //	if (!mustConvert) {
-//	    boolean highResulution = photo.getThumbHeight() > 1080 || photo.getThumbWidth() > 1920;
+//	    boolean highResulution = consumption.getThumbHeight() > 1080 || consumption.getThumbWidth() > 1920;
 //	    mustConvert = quality.getType() == Type.HIGH && highResulution;
 //	}
 	
-//	if (photo.getId().equals("35f3481dfab2f5ca5c5c93fad6ba187a")) {
+//	if (consumption.getId().equals("35f3481dfab2f5ca5c5c93fad6ba187a")) {
 //	    mustConvert = true;
 //	}
 //	
@@ -139,8 +138,8 @@ public class VideoConsumer extends AbstractConsumer implements VideoConsumerMBea
     
     private boolean checkHDRMustBeRemoved() {
 	boolean result = false;
-	if (!photo.isLivePhoto()) {
-	    String iPhone = StringUtils.findAfter(photo.getSource(), "Apple iPhone ").trim();
+	if (!consumption.isLivePhoto()) {
+	    String iPhone = StringUtils.findAfter(consumption.getSource(), "Apple iPhone ").trim();
 	    if (!iPhone.isBlank()) { 
 		try {
 		    int model = StringUtils.stripToInteger(iPhone);
@@ -151,7 +150,7 @@ public class VideoConsumer extends AbstractConsumer implements VideoConsumerMBea
 		}
 	    }
 	}
-	if (result == true && !photo.isLivePhoto()) {
+	if (result == true && !consumption.isLivePhoto()) {
 	    result = true;
 	} else {
 	    result = false;

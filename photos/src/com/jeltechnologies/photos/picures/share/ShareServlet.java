@@ -2,8 +2,6 @@ package com.jeltechnologies.photos.picures.share;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +14,6 @@ import com.jeltechnologies.photos.db.Database;
 import com.jeltechnologies.photos.pictures.Photo;
 import com.jeltechnologies.photos.pictures.ThumbnailUtilsFactory;
 import com.jeltechnologies.photos.servlet.BaseServlet;
-import com.jeltechnologies.photos.utils.StringUtils;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -32,7 +29,6 @@ public class ShareServlet extends BaseServlet {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShareServlet.class);
     private static Environment env = Environment.INSTANCE;
     protected static final String SESSION_KEY = SharedFile.class.getName();
-    private static final int TOKEN_VALIDATY_SECONDS = 10;
 
     
     

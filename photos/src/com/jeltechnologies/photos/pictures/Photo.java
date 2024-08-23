@@ -186,28 +186,7 @@ public class Photo implements Serializable {
 		+ ", coordinates=" + coordinates + ", address=" + address + ", distanceFromAddress=" + distanceFromAddress + "]";
     }
 
-    @Override
-    public int hashCode() {
-	return Objects.hash(address, coordinates, dateTaken, distanceFromAddress, duration, fileName, hidden, id, label, livePhoto, orientation,
-		relativeFileName, relativeFolderName, source, thumbHeight, thumbWidth, type);
-    }
 
-    @Override
-    public boolean equals(Object obj) {
-	if (this == obj)
-	    return true;
-	if (obj == null)
-	    return false;
-	if (getClass() != obj.getClass())
-	    return false;
-	Photo other = (Photo) obj;
-	return Objects.equals(address, other.address) && Objects.equals(coordinates, other.coordinates) && Objects.equals(dateTaken, other.dateTaken)
-		&& Objects.equals(distanceFromAddress, other.distanceFromAddress) && duration == other.duration && Objects.equals(fileName, other.fileName)
-		&& hidden == other.hidden && Objects.equals(id, other.id) && Objects.equals(label, other.label) && livePhoto == other.livePhoto
-		&& orientation == other.orientation && Objects.equals(relativeFileName, other.relativeFileName)
-		&& Objects.equals(relativeFolderName, other.relativeFolderName) && Objects.equals(source, other.source) && thumbHeight == other.thumbHeight
-		&& thumbWidth == other.thumbWidth && type == other.type && Objects.equals(metaData, other.metaData);
-    }
 
     /**
      * Compare two photos to check if any metadata has changed. This ignores the file and folder information.

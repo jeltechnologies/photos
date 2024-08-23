@@ -107,9 +107,9 @@ public class ConfigurationManager implements Serializable {
 	    LOGGER.info("ffmpeg found");
 	}
 	if (!isCanConvertApplePhotos()) {
-	    LOGGER.warn("Cannot convert Apple's HEIC pictures, because imagemick is not configured properly");
+	    LOGGER.warn("Cannot convert Apple's HEIC pictures, because apple-heic-to-jpg is not configured properly");
 	} else {
-	    LOGGER.info("Imagemick found");
+	    LOGGER.info("Apple HEIC Converter found");
 	}
     }
     
@@ -162,7 +162,7 @@ public class ConfigurationManager implements Serializable {
     }
 
     public File getImageMagickExecutable() {
-	return config.getConverters().getImagemagick().getExecutable();
+	return config.getConverters().getAppleHeicToJpg().getExecutable();
     }
 
     public File getHandbrakeExecutable() {
@@ -178,7 +178,7 @@ public class ConfigurationManager implements Serializable {
     }
 
     public boolean isCanConvertApplePhotos() {
-	return config.getConverters().getImagemagick().executableExists();
+	return config.getConverters().getAppleHeicToJpg().executableExists();
     }
     
     public boolean isCanUseExifTool() {

@@ -43,11 +43,17 @@ public class TimeLineTurboCache implements QuerySupport, TimeLineTurboCacheMBean
 
     private LocalDateTime lastTimeRefreshed = LocalDateTime.now();
 
+    private TimeLineTurboCache() {
+	LOGGER.debug("Instantiated");
+	JMXUtils.getInstance().registerMBean("Cache", "Queries", this);
+    }
+
     public static TimeLineTurboCache getInstance() {
 	return INSTANCE;
     }
 
     public void setCacheMustBeRefreshed() {
+	LOGGER.debug("setCacheMustBeRefreshed true");
 	cacheMustBeFreshed.set(true);
 	lastTimeRefreshed = LocalDateTime.now();
     }
@@ -60,16 +66,20 @@ public class TimeLineTurboCache implements QuerySupport, TimeLineTurboCacheMBean
 	}
     }
 
-    private TimeLineTurboCache() {
-	JMXUtils.getInstance().registerMBean("Cache", "Queries", this);
+    private synchronized void ensureFreshCache() {
+	boolean mustBeRefreshed = cacheMustBeFreshed.get();
+	if (mustBeRefreshed) {
+	    synchronized(this) {
+		empty();
+		cacheMustBeFreshed.set(false);
+	    }
+	}
     }
 
-    private synchronized void empty() {
+    private void empty() {
 	if (LOGGER.isInfoEnabled()) {
 	    LOGGER.info("Emptying cache");
 	}
-
-	this.cacheMustBeFreshed.set(false);
 	this.periods = new HashMap<Query, ListIndex>();
 	filesNewFirst = null;
 	earliestDayTaken = null;
@@ -98,6 +108,9 @@ public class TimeLineTurboCache implements QuerySupport, TimeLineTurboCacheMBean
 	    }
 	}
 	this.lastTimeRefreshed = LocalDateTime.now();
+	if (LOGGER.isInfoEnabled()) {
+	    LOGGER.info("Caching completed");
+	}
     }
 
     private List<Photo> reverse(List<Photo> list) {
@@ -135,10 +148,7 @@ public class TimeLineTurboCache implements QuerySupport, TimeLineTurboCacheMBean
 
     @Override
     public synchronized List<Photo> query(Query query) throws SQLException {
-	boolean mustRefresh = this.cacheMustBeFreshed.get();
-	if (mustRefresh) {
-	    empty();
-	}
+	ensureFreshCache();
 	List<Photo> photos;
 	ListIndex index = this.periods.get(query);
 	if (index == null) {
@@ -256,14 +266,12 @@ public class TimeLineTurboCache implements QuerySupport, TimeLineTurboCacheMBean
     }
 
     public List<Photo> getCopy() {
-	boolean cacheMustBeRefreshed = this.cacheMustBeFreshed.get();
-	if (cacheMustBeRefreshed) {
-	    empty();
-	}
+	ensureFreshCache();
 	List<Photo> copy = new ArrayList<Photo>(this.photosNewFirst.size());
 	for (Photo photo : this.photosNewFirst) {
 	    copy.add(photo);
 	}
 	return copy;
     }
+
 }

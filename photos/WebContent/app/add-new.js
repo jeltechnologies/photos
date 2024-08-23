@@ -163,14 +163,15 @@ function renderPhoto(photo, photoIndex) {
 
 	let label = getLargeInfoLabel(photo);
 	if (photo.type === "PHOTO") {
-		let image = "img?id=" + id + "&size=original";
+		let image = "img?id=" + id + "&size=small";
 		let loading;
 		if (photoIndex < 10) {
 			loading = "eager";
 		} else {
 			loading = "lazy";
 		}
-		let img = "<img class='add-new-image'" + " src='" + image + "' loading='" + loading + "' " + sizeHtml + ">";
+		let largeSizeFunction = 'bigImg(this, "' + photo.id + '")';
+		let img = "<img class='add-new-image'" + " src='" + image + "' onmouseover='" + largeSizeFunction + "' onclick='" + largeSizeFunction + "' loading='" + loading + "' " + sizeHtml + ">";
 		html += img;
 
 	} else {
@@ -184,6 +185,11 @@ function renderPhoto(photo, photoIndex) {
 	html += "</li>";
 	console.log(html);
 	return html;
+}
+
+function bigImg(div, id) {
+	let image = "img?id=" + id + "&size=original";
+	$(div).attr("src", image);
 }
 
 function documentReady() {	

@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.jeltechnologies.geoservices.datamodel.AddressRequest;
 import com.jeltechnologies.geoservices.datamodel.Coordinates;
 import com.jeltechnologies.photos.background.BackgroundServices;
-import com.jeltechnologies.photos.pictures.Photo;
+import com.jeltechnologies.photos.background.thumbs.PhotoInConsumption;
 
 public class PhotoAddressUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(PhotoAddressUpdater.class);
@@ -32,7 +32,7 @@ public class PhotoAddressUpdater {
 	this.executorService = BackgroundServices.getInstance().getThreadService().getExecutor();
     }
 
-    public void updateAddress(Photo p) throws LocationUpdateException, InterruptedException, IOException {
+    public void updateAddress(PhotoInConsumption p) throws LocationUpdateException, InterruptedException, IOException {
 	Coordinates c = p.getCoordinates();
 	if (c != null) {
 	    boolean success = false;

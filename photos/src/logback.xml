@@ -12,11 +12,11 @@
 		<appender-ref ref="CONSOLE" />
 	</logger> 
 	
-	<logger name="com.jeltechnologies.photos.picures.frame.FrameLogServlet" level="trace" additivity="false">
+	<logger name="com.jeltechnologies.photos.picures.frame.FrameLogServlet" level="info" additivity="false">
 		<appender-ref ref="CONSOLE" />
 	</logger>  
 	
-	<logger name="com.jeltechnologies.photos.background.sftp.server.SFTPEventListener" level="trace" additivity="false">
+	<logger name="com.jeltechnologies.photos.timeline.TimeLineTurboCache" level="info" additivity="false">
 		<appender-ref ref="CONSOLE" />
 	</logger>  
 	

@@ -8,8 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.jeltechnologies.photos.Environment;
+import com.jeltechnologies.photos.background.thumbs.PhotoInConsumption;
 import com.jeltechnologies.photos.datatypes.Dimension;
-import com.jeltechnologies.photos.pictures.Photo;
 import com.jeltechnologies.photos.utils.StringUtils;
 import com.jeltechnologies.util.OperatingSystemCommand;
 
@@ -22,9 +22,9 @@ public class PosterAndCoordinatesFileEncoder {
 
     private final static Environment ENV = Environment.INSTANCE;
 
-    private final Photo video;
+    private final PhotoInConsumption video;
 
-    public PosterAndCoordinatesFileEncoder(Photo video) {
+    public PosterAndCoordinatesFileEncoder(PhotoInConsumption video) {
 	this.video = video;
     }
 

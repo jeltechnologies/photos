@@ -2,8 +2,6 @@ package com.jeltechnologies.photos.background.thumbs;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -42,11 +40,9 @@ public abstract class AbstractConsumer implements Runnable {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(AbstractConsumer.class);
 
-    private boolean moveFailedFails = false;
+    private boolean moveFailedFiles = false;
 
     protected static final Environment ENV = Environment.INSTANCE;
-
-    private final static File FAILED_FOLDER = ENV.getConfig().getFailedFolder();
 
     private final static LocalDateTime EARLIEST_POSSIBLE = LocalDateTime.of(1900, 1, 1, 0, 0);
 
@@ -62,31 +58,29 @@ public abstract class AbstractConsumer implements Runnable {
 
     private final String threadName;
 
-    protected final NotWorkingFiles notWorkingFiles;
+    private final NotWorkingFiles notWorkingFiles;
 
     private Database database;
 
     protected QueuedMediaFile queuedMediaFile;
 
-    protected Photo photo;
+    protected PhotoInConsumption consumption;
 
     private String status;
-
-    private File failedFileToMove = null;
 
     private AtomicBoolean locationServiceAvailable = new AtomicBoolean(true);
 
     protected final ThumbnailUtils thumbUtils = ThumbnailUtilsFactory.getUtils();
 
-    protected abstract void handleFile(boolean generateMetaData) throws Exception;
+    protected abstract void handleFile() throws Exception;
 
     protected abstract MediaType getMediaType();
 
-    public AbstractConsumer(MediaQueue queue, String threadName, NotWorkingFiles notWorkingFiles, boolean moveFailedFails) {
+    public AbstractConsumer(MediaQueue queue, String threadName, boolean moveFailedFails) {
 	this.threadName = threadName;
 	this.queue = queue;
-	this.notWorkingFiles = notWorkingFiles;
-	this.moveFailedFails = moveFailedFails;
+	this.notWorkingFiles = new NotWorkingFiles();
+	this.moveFailedFiles = moveFailedFails;
     }
 
     protected Database getDatabase() {
@@ -121,10 +115,7 @@ public abstract class AbstractConsumer implements Runnable {
 	String currentFilePath = null;
 	while (!interrupted) {
 	    try {
-		if (moveFailedFails && failedFileToMove != null) {
-		    moveFailedFileFromLastRound();
-		}
-		photo = null;
+		consumption = null;
 		setStatus("Waiting (polling) queue");
 		queuedMediaFile = queue.poll();
 		if (queuedMediaFile != null) {
@@ -153,15 +144,20 @@ public abstract class AbstractConsumer implements Runnable {
 	    } catch (Throwable t) {
 		String errorMessage = queuedMediaFile.getFile().getName() + " error " + t.getMessage();
 		if (LOGGER.isInfoEnabled()) {
-		    LOGGER.info(errorMessage, t);
+		    LOGGER.info(errorMessage);
 		} else {
-		    LOGGER.warn(errorMessage, t);
+		    if (LOGGER.isDebugEnabled()) {
+			LOGGER.warn(errorMessage, t);
+		    }
 		}
 		if (database != null) {
 		    database.rollback();
 		}
-		this.failedFileToMove = queuedMediaFile.getFile();
-		notWorkingFiles.add(queuedMediaFile.getFile(), t);
+		NotWorkingFile notWorkingFile = new NotWorkingFile(queuedMediaFile.getFile(), t.getMessage());
+		notWorkingFiles.add(notWorkingFile);
+		if (moveFailedFiles) {
+		    scheduleMoveNotWorkingFile(notWorkingFile, 30, TimeUnit.SECONDS);
+		}
 	    }
 
 	    if (database != null && queue.getSize() == 0) {
@@ -174,102 +170,69 @@ public abstract class AbstractConsumer implements Runnable {
 	}
     }
 
-    private void moveFailedFileFromLastRound() {
-	try {
-	    File original = this.failedFileToMove;
-	    String relativeFileName = ENV.getRelativePhotoFileName(original);
-	    String destinationPath = FAILED_FOLDER + relativeFileName;
-	    File destination = new File(destinationPath);
-	    File destinationFolder = destination.getParentFile();
-	    if (!destinationFolder.isDirectory()) {
-		boolean ok = destinationFolder.mkdirs();
-		if (!ok) {
-		    throw new IOException("Cannot create folder: " + destinationPath);
-		}
-	    }
-	    if (LOGGER.isInfoEnabled()) {
-		LOGGER.info("  -> Moving " + original.getAbsolutePath() + " to " + destination.getAbsolutePath());
-	    }
-	    Files.move(original.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
-	    this.failedFileToMove = null;
-	} catch (IOException e) {
-	    LOGGER.warn(e.getMessage() + " for file " + queuedMediaFile.getFile());
-	}
-    }
-
     private void consumeFile(File photoFile) throws Exception, LocationUpdateException, SQLException, IOException, InterruptedException {
 	if (LOGGER.isTraceEnabled()) {
 	    LOGGER.trace("consumeFile " + photoFile);
 	}
-	boolean cacheMustBeCleared = false;
+	consumption = new PhotoInConsumption();
 	File diskFile = queuedMediaFile.getFile();
 
-	boolean fileChanged;
 	String relativeFileName = ENV.getRelativePhotoFileName(diskFile);
 	MediaFile dbFile = getDatabase().getMediaFile(relativeFileName);
 	if (dbFile == null) {
-	    fileChanged = true;
+	    consumption.setFileChanged(true);
 	} else {
-	    fileChanged = dbFile.getSize() != diskFile.length() || dbFile.getFileLastModified() != diskFile.lastModified();
+	    boolean fileChanged = dbFile.getSize() != diskFile.length() || dbFile.getFileLastModified() != diskFile.lastModified();
+	    consumption.setFileChanged(fileChanged);
 	}
 	String photoId;
-	if (fileChanged) {
+	if (consumption.isFileChanged()) {
 	    photoId = FileUtils.createMD5Checksum(diskFile);
 	} else {
 	    photoId = dbFile.getId();
 	}
 
-	photo = getDatabase().getPhotoById(photoId);
-	boolean newPhoto = (photo == null);
-	if (newPhoto || queuedMediaFile.getType() == Producer.Type.COMPLETE_REFRESH) {
-	    Photo beforeChange;
-	    if (newPhoto) {
-		photo = new Photo(photoId, getMediaType());
-		beforeChange = null;
-	    } else {
-		beforeChange = getDatabase().getPhotoById(photoId);
-	    }
+	Photo photoFromDatabase = getDatabase().getPhotoById(photoId);
+	if (photoFromDatabase == null) {
+	    Photo newPhoto = new Photo(photoId, getMediaType());
+	    consumption = new PhotoInConsumption(newPhoto);
+	    consumption.setAdded(true);
+	} else {
+	    consumption = new PhotoInConsumption(photoFromDatabase);
+	    consumption.setAdded(false);
+	}
 
+	if (consumption.isAdded() || queuedMediaFile.getType() == Producer.Type.COMPLETE_REFRESH) {
 	    updateFileInPhoto();
 	    if (cacheFolderOK()) {
-		database.getMetaData(photo);
-		if (newPhoto || photo.getMetaData() == null || FORCE_UPDATE_EXIF) {
+		database.getMetaData(consumption.getPhoto());
+		if (consumption.isAdded() || consumption.getMetaData() == null || FORCE_UPDATE_EXIF) {
 		    if (EXIFTOOL_CONFIGURED) {
 			updateExifMetaData(photoFile);
 		    }
 		}
-		handleFile(newPhoto);
+		handleFile();
 		updateLocation();
-		if (newPhoto) {
-		    getDatabase().createPhoto(photo);
-		    cacheMustBeCleared = true;
+		if (consumption.isAdded()) {
+		    getDatabase().createPhoto(consumption.getPhoto());
 		} else {
-		    if (beforeChange == null || !beforeChange.hasSameMetaData(photo)) {
-			if (LOGGER.isDebugEnabled()) {
-			    LOGGER.debug("Before: " + beforeChange.toString());
-			    LOGGER.debug("After : " + photo.toString());
-			    LOGGER.debug("Updating changed photo in database " + photo.getRelativeFileName());
-			}
-
-			getDatabase().updatePhoto(photo);
-			cacheMustBeCleared = true;
-		    } else {
-			if (LOGGER.isTraceEnabled()) {
-			    LOGGER.trace("Photo not changed: " + photo.getRelativeFileName());
-			}
+		    if (consumption.isPhotoChanged()) {
+			getDatabase().updatePhoto(consumption.getPhoto());
 		    }
 		}
 	    } else {
-		LOGGER.warn("Cache folder does not exist for " + photo.getId());
+		LOGGER.warn("Cache folder does not exist for " + consumption.getId());
 	    }
 	}
-	if (fileChanged) {
-	    cacheMustBeCleared = true;
+	if (consumption.isFileChanged()) {
 	    addFileToDatabase();
 	}
-	if (cacheMustBeCleared) {
-	    boolean inAlbums = User.inUserAlbum(photo);
+	if (consumption.isPhotoChanged() || consumption.isAdded()) {
+	    boolean inAlbums = User.inUserAlbum(consumption.getPhoto());
 	    if (inAlbums) {
+		if (LOGGER.isInfoEnabled()) {
+		    LOGGER.info("Channged: " + consumption.toString());
+		}
 		TimeLineTurboCache.getInstance().setCacheMustBeRefreshed();
 	    }
 	}
@@ -278,10 +241,10 @@ public abstract class AbstractConsumer implements Runnable {
     private void updateExifMetaData(File photoFile) throws IOException, InterruptedException {
 	ExifToolGpsGrabber gpsGrabber = new ExifToolGpsGrabber(photoFile);
 	Coordinates coordinates = gpsGrabber.getCoordinates();
-	photo.setCoordinates(coordinates);
+	consumption.setCoordinates(coordinates);
 	ExifToolGrabber exifGrabber = new ExifToolGrabber(photoFile);
 	MetaData meta = exifGrabber.getMetaData();
-	photo.setMetaData(meta);
+	consumption.setMetaData(meta);
 
 	String make = meta.getValue("Make");
 	String model = meta.getValue("Camera Model Name");
@@ -293,13 +256,13 @@ public abstract class AbstractConsumer implements Runnable {
 		source = model;
 	    }
 	}
-	photo.setSource(source);
+	consumption.setSource(source);
 	String orientationString = meta.getValue("Orientation");
 	int orientation = 0;
 	if (orientationString != null) {
 	    orientation = Integer.parseInt(orientationString);
 	}
-	photo.setOrientation(orientation);
+	consumption.setOrientation(orientation);
 
 	int duration = 0;
 	String durationString = meta.getValue("Duration");
@@ -329,7 +292,7 @@ public abstract class AbstractConsumer implements Runnable {
 	} catch (Exception e) {
 	    LOGGER.warn("Parse error for duration: " + durationString + " in " + photoFile, e);
 	}
-	photo.setDuration(duration);
+	consumption.setDuration(duration);
 
 	ZonedDateTime dateTaken = null;
 	try {
@@ -362,7 +325,7 @@ public abstract class AbstractConsumer implements Runnable {
 	if (impossibleDate(dateTakenDateTime)) {
 	    dateTakenDateTime = LocalDateTime.from(fallBackdateLastModified);
 	}
-	photo.setDateTaken(dateTakenDateTime);
+	consumption.setDateTaken(dateTakenDateTime);
     }
 
     private boolean impossibleDate(LocalDateTime dateTaken) {
@@ -371,7 +334,7 @@ public abstract class AbstractConsumer implements Runnable {
     }
 
     private boolean cacheFolderOK() {
-	File cache = thumbUtils.getCacheFolder(photo);
+	File cache = thumbUtils.getCacheFolder(consumption.getPhoto());
 	if (!cache.exists()) {
 	    cache.mkdirs();
 	}
@@ -386,7 +349,7 @@ public abstract class AbstractConsumer implements Runnable {
 	MediaFile newMediaFile = new MediaFile();
 	newMediaFile.setRelativeFileName(relativeFileName);
 	newMediaFile.setRelativeFolderName(relativeFolderName);
-	newMediaFile.setId(photo.getId());
+	newMediaFile.setId(consumption.getId());
 	newMediaFile.setFileLastModified(disk.lastModified());
 	newMediaFile.setSize(disk.length());
 	newMediaFile.setFileName(disk.getName());
@@ -400,20 +363,29 @@ public abstract class AbstractConsumer implements Runnable {
 	File file = queuedMediaFile.getFile();
 	String relativeFolderName = ENV.getRelativePhotoFileName(file.getParentFile());
 	String relativeFileName = ENV.getRelativePhotoFileName(file);
-	photo.setId(photo.getId());
-	photo.setRelativeFileName(relativeFileName);
-	photo.setFileName(file.getName());
-	photo.setRelativeFolderName(relativeFolderName);
+	consumption.setId(consumption.getId());
+	consumption.setRelativeFileName(relativeFileName);
+	consumption.setFileName(file.getName());
+	consumption.setRelativeFolderName(relativeFolderName);
     }
 
     private void updateLocation() throws LocationUpdateException, IOException, InterruptedException {
 	if (LOCATION_SERVICE_CONFIGURED && locationServiceAvailable.get() == true) {
-	    boolean missingAddress = photo.getCoordinates() != null && photo.getAddress() == null;
+	    boolean missingAddress = consumption.getCoordinates() != null && consumption.getAddress() == null;
 	    if (FORCE_LOCATION_UPDATE || missingAddress) {
 		setStatus("Getting address from geoservices");
-		new PhotoAddressUpdater().updateAddress(photo);
+		new PhotoAddressUpdater().updateAddress(consumption);
 	    }
 	}
+    }
+
+    private void scheduleMoveNotWorkingFile(NotWorkingFile file, int time, TimeUnit timeUnit) {
+	BackgroundServices.getInstance().getThreadService().scheduleOnce(new Runnable() {
+	    @Override
+	    public void run() {
+		notWorkingFiles.moveAndRemoveFromList(file.file());
+	    }
+	}, time, timeUnit);
     }
 
     private void scheduleEnablingLocationService(int time, TimeUnit timeUnit) {
