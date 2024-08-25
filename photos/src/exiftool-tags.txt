@@ -1,0 +1,22 @@
+# ===========================================================
+# The following tags in Exiftools will be stored in database
+# 
+# Comment with # to skip the certain tags
+#
+# ===========================================================
+Make
+Camera Model Name
+Orientation
+F.Number
+Exposure Time 
+Exposure Program
+ISO
+GPS Altitude 
+Shutter Speed
+Megapixels
+Aperture
+Focal Length In 35mm Format
+GPS Date/Time
+Date/Time Original
+Modify Date
+Duration
