@@ -55,21 +55,21 @@
 <div class="paging-in-center">
 	<div class="paging-navigation">
 		<button onclick="pagingFirst();">
-			<icons:icon name="bar-left" size="8"/>
+			<icons:icon name="chevron-bar-left" size="8"/>
 		</button>
 
 		<button onclick="pagingPrevious();">
-			<icons:icon name="left" size="8"/>
+			<icons:icon name="chevron-left" size="8"/>
 		</button>
 
 		<span class="currentPage" id='currentPage-1'>.</span><span class="totalPages">..</span>
 
 		<button onclick="pagingNext();">
-			<icons:icon name="right" size="8"/>
+			<icons:icon name="chevron-right" size="8"/>
 		</button>
 
 		<button onclick="pagingLast();">
-			<icons:icon name="bar-right" size="8"/>
+			<icons:icon name="chevron-bar-right" size="8"/>
 		</button>
 
 	</div>

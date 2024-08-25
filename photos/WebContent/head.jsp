@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="mobile-web-app-capable" content="yes">
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 		<link rel="apple-touch-icon" sizes="57x57" href="images/favicon/apple-icon-57x57.png">
 		<link rel="apple-touch-icon" sizes="60x60" href="images/favicon/apple-icon-60x60.png">

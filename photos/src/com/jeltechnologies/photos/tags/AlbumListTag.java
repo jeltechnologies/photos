@@ -50,7 +50,7 @@ public class AlbumListTag extends BaseTag {
 
     private static final String ALBUM_WITHOUT_COVER = "images/album-without-cover-1440-1080.jpg";
 
-    private static final String PLAY_ICON = new IconTag("play").toString();
+    private static final String PLAY_ICON = new IconTag("play-circle").toString();
 
     private static final int ALBUM_WITHOUT_COVER_WIDTH = 1440;
 

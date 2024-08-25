@@ -8,7 +8,7 @@ import com.jeltechnologies.photos.utils.StringUtils;
 public abstract class MenuTag extends BaseTag {
     private static final long serialVersionUID = -2933313346806858004L;
     
-    private final static String MENU_ICON = new IconTag("menu").toString();
+    private final static String MENU_ICON = new IconTag("three-dots-vertical").toString();
 
     private final static String ACTION_SPACES = StringUtils.dup(6, ' ');
     

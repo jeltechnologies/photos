@@ -19,7 +19,7 @@ public abstract class BaseTag extends TagSupport {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseTag.class);
 
     protected static final String BACK_BUTTON= 
-	    "<span style=\"float: left\"><button onclick=\"window.history.back();\" class=\"backbtn\">" + new IconTag("back", 24).toString() + "</button></span>";
+	    "<span style=\"float: left\"><button onclick=\"window.history.back();\" class=\"backbtn\">" + new IconTag("chevron-left", 24).toString() + "</button></span>";
 
     protected HttpServletRequest request;
     

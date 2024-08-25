@@ -13,7 +13,7 @@
 
 <script>
 	const mapAccessToken = "<%=Environment.INSTANCE.getConfig().getMapBoxAccessToken()%>";
-	const PLAY_ICON = '<%=new IconTag("play").toString()%>';
+	const PLAY_ICON = '<%=new IconTag("play-circle-fill").toString()%>';
 </script>
 
 </head>
@@ -34,7 +34,7 @@
 			<p>
 				<span style="float: left">
 					<button onclick="window.history.back();" class="backbtn">
-						<icons:icon name="left" />
+						<icons:icon name="chevron-left" />
 					</button>
 				</span> 
 				<span id="previousButton"></span> 

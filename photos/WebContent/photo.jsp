@@ -29,12 +29,12 @@
  	<div id="loader" class="center"></div>
  
 	<div id="swiper-left-top-menu">
-		<button class="dropbtn" onclick="window.history.back();"><icons:icon name="close" size="48"/></button>
+		<button class="dropbtn" onclick="window.history.back();"><icons:icon name="x" size="48"/></button>
 	</div>
 
 	<div id="swiper-right-top-menu">
 		<div class="dropdown">
-  			<button class="dropbtn"><icons:icon name="menu" size="32"/></button>
+  			<button class="dropbtn"><icons:icon name="three-dots-vertical" size="32"/></button>
   			<div class="dropdown-content">
     			<a href="javascript:downloadFromAlbumClicked()">Download</a>
     			<%
@@ -49,7 +49,7 @@
 		</div>
 		
 		<div class="dropdown">
-  			<button class="dropbtn"><icons:icon name="share" size="32"/></button>
+  			<button class="dropbtn"><icons:icon name="share-fill" size="32"/></button>
   			<div class="dropdown-content">
     			<a href="javascript:shareClicked('normal')">Share - normal quality</a>
     			<a href="javascript:shareClicked('high')">Share - high quality</a>
@@ -57,7 +57,7 @@
 		</div>
 		
 		<div class="dropdown">
-  			<button class="dropbtn"><icons:icon name="info" size="32"/></button>
+  			<button class="dropbtn"><icons:icon name="info-circle-fill" size="32"/></button>
   			<div class="dropdown-content">
     			<a href="javascript:showInfoClicked()">Information</a>
   			</div>
