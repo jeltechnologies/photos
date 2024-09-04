@@ -21,8 +21,6 @@
 <title>Photos</title>
 
 <style>
-
-
 header .header {
 	background-color: #fff;
 	height: 45px;
@@ -48,7 +46,6 @@ header a img {
 	position: relative;
 	z-index: 1;
 	background: #FFFFFF;
-	max-width: 360px;
 	margin: 0 auto 100px;
 	padding: 45px;
 	text-align: center;
@@ -109,6 +106,49 @@ body {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
+
+/* iPhone [portrait + landscape] */
+@media only screen and (max-device-width: 480px) {
+	.login-page {
+		width: 80%;
+		padding: 8% 0 0;
+		margin: auto;
+	}
+	.login-page .form .login {
+		margin-top: -31px;
+		margin-bottom: 26px;
+	}
+	.form {
+		width: 80%;
+	}
+	.form input {
+		font-size: 3em;
+	}
+	.form button {
+		font-size: 3em;
+	}
+	.form .message {
+		margin: 15px 0 0;
+		color: #b3b3b3;
+		font-size: 3em;
+	}
+	.form .message a {
+		color: #4CAF50;
+		text-decoration: none;
+	}
+	.container {
+		position: relative;
+		z-index: 1;
+		max-width: 300px;
+		margin: 0 auto;
+	}
+	h3 {
+		font-size: 4em;
+	}
+	p {
+		font-size: 3em;
+	}
+}
 </style>
 
 </head>
@@ -121,17 +161,14 @@ body {
 			<div class="login">
 				<div class="login-header">
 					<h3>WELCOME</h3>
-					<p>Please enter your credentials.</p>
 				</div>
 			</div>
 
 			<form name="loginform" class="login-form" method="POST" action="j_security_check">
 
-				<input type="text" id="username" name="j_username" placeHolder="User"/>
-				<input type="password" id="password" name="j_password" placeHolder="Password"/>
-				<br />
+				<input type="text" id="username" name="j_username" placeHolder="User" /> <input type="password" id="password" name="j_password" placeHolder="Password" /> <br />
 				<button id="loginbutton" type="submit">Log in</button>
-				
+
 			</form>
 		</div>
 	</div>

@@ -1,5 +1,6 @@
 const USER_LOCALE = navigator.languages && navigator.languages.length ? navigator.languages[0] : navigator.language;
 const LOCALE_MONTHS = luxon.Info.months("long", { locale: USER_LOCALE });
+const THUMB_HEIGHT = 300;
 
 function getTimelineTitle(from, to, grouping) {
 	let luxonFrom = luxon.DateTime.fromISO(from);
@@ -308,19 +309,15 @@ function getLargeInfoLabel(photo) {
 	return info;
 }
 
-function getDimensionHtml(photo) {
-	return getDimensionHtml(photo, 200);
-} 
-
-function getDimensionHtml(photo, height) {
+function getThumbDimensionHtml(photo) {
 	let thumbHeight = photo.thumbHeight;
 	let thumbWidth = photo.thumbWidth;
-	let width = thumbWidth / thumbHeight * height;
+	let width = thumbWidth / thumbHeight * THUMB_HEIGHT;
 	let title = photo.title;
 	if (title == undefined || title !== "") {
 		title = "..."
 	}
-	let sizeHtml = "alt='" + title + "' width='" + width + "' height='" + height + "'";
+	let sizeHtml = "alt='" + title + "' width='" + width + "' height='" + THUMB_HEIGHT + "'";
 	return sizeHtml;
 }
 

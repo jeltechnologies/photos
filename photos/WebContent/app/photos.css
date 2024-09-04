@@ -74,9 +74,6 @@ body {
 	  color: white;
 }
 
-#result-modal {
-}
-
 .result-icon {
 	color: var(--pale);
 }
@@ -333,7 +330,7 @@ DROPDOWN from https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_js_d
 	cursor: pointer;
 }
 .image-in-album {
-  	max-height: 200px;
+  	/*max-height: 200px;*/
 }
 
 .image-in-add-new {
@@ -373,7 +370,7 @@ DROPDOWN from https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_js_d
 		background-color: var(--background);
 	}
 	.album-title {
-		font-size: 150%;
+		font-size: 3em;
 	}
 	#album-name-edit-input {
 		font-size: 150%
@@ -394,8 +391,12 @@ DROPDOWN from https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_js_d
 		font-size: 300%;
 	}
 	.button {
-		font-size: 150%;
+		font-size: 2em;
 	}
+	.gotoperiodbtn {
+		font-size: 2em;
+	}
+	
 	.dropbtn {
 		font-size: 150%;
 	}
@@ -403,8 +404,8 @@ DROPDOWN from https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_js_d
 		font-size: 150%;
 	}
 	.select-filter {
-		font-size: 150%;
-		width: 150px;
+		font-size: 2em;
+		width: 300px;
 		margin-left: 4px;
 	}
 	.album li {
@@ -419,7 +420,7 @@ DROPDOWN from https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_js_d
 		background: rgba(0, 0, 0, 0.2);
 	}
 	.photo-title {
-		font-size: 150%;
+		font-size: 2em;
 	}
 	.paging-navigation {
 		font-size: 150%;

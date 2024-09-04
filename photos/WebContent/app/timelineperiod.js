@@ -190,7 +190,7 @@ function renderPhoto(photoIndex) {
 	let link = "photo.jsp?photo=" + id + "&from=" + period.from + "&to=" + period.to + "&sort=" + "&mediatype=" + timeline.mediatype;
 	html += "<li><a href='" + link + "'>";
 	let image = "img?id=" + id + "&size=small";
-	let sizeHtml = getDimensionHtml(photo);
+	let sizeHtml = getThumbDimensionHtml(photo);
 	let loading;
 	if (photoIndex < 10) {
 		loading = "eager";

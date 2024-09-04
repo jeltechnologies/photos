@@ -56,7 +56,7 @@ public class AlbumListTag extends BaseTag {
 
     private static final int ALBUM_WITHOUT_COVER_HEIGHT = 1080;
 
-    private static final BigDecimal MAX_HEIGHT = new BigDecimal(200);
+    private static final BigDecimal MAX_HEIGHT = new BigDecimal(300);
 
     private static final int LOAD_LAZY_AFTER_IMAGE = 10;
 

@@ -146,7 +146,7 @@ function generateAlbum(i) {
 		} else {
 			loading = "eager";
 		}
-		let dimensionHtml = getDimensionHtml(cover);
+		let dimensionHtml = getThumbDimensionHtml(cover);
 		let img = "<img class='image-in-album' src='img?id=" + cover.id + "&size=small' loading='" + loading + "' " + dimensionHtml + "' onclick=\"goto('" + link + "');\">";
 		html += img;
 		if (title !== "") {
