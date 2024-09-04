@@ -33,10 +33,11 @@ var myRenderer;
 var swiper;
 var selectedProgram;
 var programButtons = [];
+var isModalOpen = false;
 
 
 function hidePhoto() {
-	$("#hide-photo-modal").modal();
+	showModal("#hide-photo-modal");
 }
 
 function hidePhotoOK() {
@@ -88,9 +89,9 @@ function showOptions() {
 		}
 	}
 	$("#more-like-this-thumb").attr("src", src);
-	$("#program-modal").modal();
-	scheduleHideModal();
+	showModal("#program-modal");
 }
+
 
 function shareClicked() {
 	let photo = photos[swiper.realIndex];
@@ -103,10 +104,7 @@ function shareClicked() {
 	let postBody = {};
 	postBody.id = photo.id;
 	postBody.quality = quality;
-
 	postJson("share", postBody, shareImage)
-	
-	//shareImage(fileToDownload, type);
 }
 
 async function shareImage(data) {
@@ -134,7 +132,7 @@ async function shareImage(data) {
 
 function showInfo() {
 	hideNavigation();
-	$("#infos").modal();
+	showModal("#info-modal");
 	let startZoom = 11;
 	let index = swiper.realIndex;
 	let photo = photos[index];
@@ -157,7 +155,6 @@ function showInfo() {
 	$("#photo-info-ago").html(getTimeAgo(date));
 	$("#photo-info-source").html(photo.source);
 	$("#photo-info-location").html(getLocationInfo(photo));
-	scheduleHideModal();
 }
 
 function hideModal() {
@@ -282,7 +279,16 @@ function scheduleNextSlide() {
 		durationMs = NEXT_SLIDE;
 	}
 	console.log("Scheduling next slide in " + durationMs + " milliseconds");
-	timeOutNextSlide = setTimeout(nextSlide, durationMs);
+	timeOutNextSlide = setTimeout(nextSlideIfNotModalShown, durationMs);
+}
+
+
+function nextSlideIfNotModalShown() {
+	if (!isModalOpen) {
+		nextSlide();
+	} else {
+		scheduleNextSlide();
+	}
 }
 
 function nextSlide() {
@@ -501,7 +507,7 @@ function addSlide(photo, loading) {
 	if (photo.type === "PHOTO") {
 		html += "<div class='swiper-lazy-preloader swiper-lazy-preloader-white'></div></div>";
 	}
-	console.log(html);
+	//console.log(html);
 	return html;
 }
 
@@ -536,6 +542,18 @@ function addKeyListeners() {
 			}
 		}
 	});
+}
+
+function showModal(div){
+	isModalOpen = true;	
+	$(div).modal();
+	$(div).on($.modal.AFTER_CLOSE, userClosedModal);
+	scheduleHideModal();
+}
+
+function userClosedModal() {
+	console.log("userCloseModal");
+	isModalOpen = false;
 }
 
 function getProgramGroups() {

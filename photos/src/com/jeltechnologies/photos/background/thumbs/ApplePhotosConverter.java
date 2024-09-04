@@ -55,6 +55,6 @@ public class ApplePhotosConverter {
 	    }
 	}
 	command.execute();
-	LOGGER.info(command.getDescription());
+	//LOGGER.info(command.getDescription());
     }
 }
