@@ -310,14 +310,18 @@ function getLargeInfoLabel(photo) {
 }
 
 function getThumbDimensionHtml(photo) {
+	return getDimensionHtml(photo, THUMB_HEIGHT);
+}
+
+function getDimensionHtml(photo, height) {
 	let thumbHeight = photo.thumbHeight;
 	let thumbWidth = photo.thumbWidth;
-	let width = thumbWidth / thumbHeight * THUMB_HEIGHT;
+	let width = thumbWidth / thumbHeight * height;
 	let title = photo.title;
 	if (title == undefined || title !== "") {
 		title = "..."
 	}
-	let sizeHtml = "alt='" + title + "' width='" + width + "' height='" + THUMB_HEIGHT + "'";
+	let sizeHtml = "alt='" + title + "' width='" + width + "' height='" + height + "'";
 	return sizeHtml;
 }
 
