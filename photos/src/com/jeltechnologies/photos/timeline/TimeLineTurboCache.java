@@ -244,6 +244,7 @@ public class TimeLineTurboCache implements QuerySupport, TimeLineTurboCacheMBean
 
     @Override
     public LocalDate getEarliestDayTaken(User user) throws SQLException {
+	ensureFreshCache();
 	if (earliestDayTaken == null) {
 	    Database db = null;
 	    try {
