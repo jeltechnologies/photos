@@ -255,10 +255,17 @@ function showInfoClicked() {
 	if (date === null || date === undefined) {
 		date = photo.dateLastModified;
 	}
-	infoHtml += cell(getDateLabel(date));
-	infoHtml += cell(photo.source);
-	infoHtml += cell(photo.fileName);
-	infoHtml += cell("Album: " + photo.relativeFolderName);
+	
+	let contents = getDateLabel(date);
+	if (contents !== "") {
+		contents += ", ";		
+	}
+	contents += photo.source;
+	if (photo.source != undefined && photo.source != "") {
+		contents += ", ";
+	}
+	contents += photo.fileName;	
+	infoHtml += cell(contents);
 	infoHtml += endTable;
 
 	let title = startTable + cell(getLocationInfo(photo)) + endTable;
