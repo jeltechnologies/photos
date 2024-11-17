@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.jeltechnologies.photos.config.ConfigurationManager;
 import com.jeltechnologies.photos.config.CountryMap;
 import com.jeltechnologies.photos.datatypes.Dimension;
+import com.jeltechnologies.photos.pictures.MediaType;
 import com.jeltechnologies.photos.picures.frame.program.AllPhotosProgram;
 import com.jeltechnologies.photos.picures.frame.program.BaseFrameProgram;
 import com.jeltechnologies.photos.picures.frame.program.FamilyVideosProgram;
@@ -29,34 +30,50 @@ import com.jeltechnologies.photos.utils.FileUtils;
 import com.jeltechnologies.photos.utils.StringUtils;
 
 public class Environment {
-    
+
     private ConfigurationManager config;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Environment.class);
 
     public static final Environment INSTANCE = new Environment();
-    
+
     public static final String THUMB_FILE_FORMAT = ".jpg";
-    
+
     public static final int JPG_QUALITY = 99;
 
     public static final String DEFAULT_PRIVILEGE = "photos-user";
-    
+
     public static final String[] VIDEO_EXTENSIONS = { "mp4", "mov", "m2ts", "avi", "wmv", "3gp", "mkv", "vob", "m4v" };
-    
+
     public static final String[] PHOTO_EXTENSIONS = { "jpg", "jpeg", "heic", "png", "bmp", "gif" };
-    
+
     private static final int SAME_PLACE_DISTANCE_WITHIN_KILOMETRES = 5;
-    
+
     private String absolutePhotoFolderName;
-    
+
     private SpecialDaySettings specialDays;
-    
+
     private CountryMap countryMap;
-    
+
     private Environment() {
     }
-    
+
+    public static MediaType getMediaType(String fileName) {
+	String extension = StringUtils.findAfterLast(fileName, ".").toLowerCase();
+	MediaType type = null;
+	for (int i = 0; type == null && i < PHOTO_EXTENSIONS.length; i++) {
+	    if (PHOTO_EXTENSIONS[i].equals(extension)) {
+		type = MediaType.PHOTO;
+	    }
+	}
+	for (int i = 0; type == null && i < VIDEO_EXTENSIONS.length; i++) {
+	    if (VIDEO_EXTENSIONS[i].equals(extension)) {
+		type = MediaType.VIDEO;
+	    }
+	}
+	return type;
+    }
+
     public void init(String yamlFileName) throws Exception {
 	config = new ConfigurationManager(new File(yamlFileName));
 	absolutePhotoFolderName = toUnixFileName(config.getRootOriginalFolder());
@@ -64,11 +81,11 @@ public class Environment {
 	specialDays = new SpecialDaySettings();
 	specialDays.addConfiguration(config.getSpecialDaysConfiguration());
     }
-    
+
     public CountryMap getCountryMap() {
 	return countryMap;
     }
-    
+
     public ConfigurationManager getConfig() {
 	return config;
     }
@@ -79,7 +96,7 @@ public class Environment {
     private String toUnixFileName(File file) {
 	return toUnixFileName(file.getAbsolutePath());
     }
-    
+
     private String toUnixFileName(String fileName) {
 	String slashed = StringUtils.replaceAll(fileName, '\\', '/');
 	String noDoubleSlash = StringUtils.replaceAll(slashed, "//", "/");
@@ -118,7 +135,7 @@ public class Environment {
 	}
 	return file;
     }
-    
+
     public List<Dimension> getAllThumbnailDimensions() {
 	List<Dimension> dimensions = new ArrayList<Dimension>();
 	dimensions.add(getDimensionOriginal());
@@ -126,7 +143,7 @@ public class Environment {
 	dimensions.add(getDimensionFullscreen());
 	return dimensions;
     }
-    
+
     public Dimension getDimensionOriginal() {
 	return new Dimension(0, 0, Dimension.Type.ORIGINAL);
     }
@@ -134,7 +151,7 @@ public class Environment {
     public Dimension getDimensionThumbs() {
 	return new Dimension(400, 300, Dimension.Type.SMALL);
     }
-    
+
     public Dimension getDimensionFullscreen() {
 	return new Dimension(1920, 1080, Dimension.Type.MEDIUM); // ipad retina
     }
@@ -142,42 +159,42 @@ public class Environment {
     public String getRelativeRootAlbums() {
 	return getRelativePhotoFileName(config.getAlbumsFolder());
     }
-    
+
     public String getRelativeRootUncategorized() {
 	return getRelativePhotoFileName(config.getUncategorizedFolder());
     }
-    
+
     @Deprecated
     public SpecialDaySettings getSpecialDays() {
-        return specialDays;
+	return specialDays;
     }
-    
+
     public List<Group> getFrameProgramGroups() {
 	List<Group> groups = new ArrayList<Group>();
-	
+
 	List<BaseFrameProgram> all = new ArrayList<BaseFrameProgram>();
 	all.add(new AllPhotosProgram());
 	all.add(new FamilyVideosProgram());
 	all.add(new TodayLastYears("todaylastyears", "Today years ago"));
 	groups.add(new Group(new GroupTitle("all", "All photos and videos"), all));
-	
+
 	List<BaseFrameProgram> programs = new ArrayList<BaseFrameProgram>();
 	programs.add(new LastWeekProgram());
 	programs.add(new LastMonthProgram());
 	programs.add(new Last3MonthsProgram());
 	programs.add(new Last6MonthsProgram());
 	programs.add(new Last12MonthsProgram());
-	
+
 	groups.add(new Group(new GroupTitle("programs", "Time"), programs));
 	groups.add(new Group(new GroupTitle("special-days", "Special days"), specialDays.getPrograms()));
-	
+
 	List<BaseFrameProgram> moreLikePrograms = new ArrayList<BaseFrameProgram>();
 	moreLikePrograms.add(new SameTimePhotoProgram("same-time", "Same time"));
 	moreLikePrograms.add(new SameTimeAndPlaceProgram("same-time-and-place", "Same time and place", SAME_PLACE_DISTANCE_WITHIN_KILOMETRES));
 	moreLikePrograms.add(new SamePlaceProgram("same-place", "Same place", SAME_PLACE_DISTANCE_WITHIN_KILOMETRES));
 	groups.add(new Group(new GroupTitle("more-like", "More like"), moreLikePrograms));
-	
+
 	return groups;
     }
-    
+
 }

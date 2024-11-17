@@ -28,7 +28,6 @@
 			<web-resource-name>Public contents</web-resource-name>
 			<url-pattern>/login/*</url-pattern>
 			<url-pattern>/images/favicon/*</url-pattern>
-			<url-pattern>/share/*</url-pattern>
 		</web-resource-collection>
 	</security-constraint>
 

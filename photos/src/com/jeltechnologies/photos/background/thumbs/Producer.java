@@ -18,7 +18,7 @@ public class Producer implements Runnable {
     private volatile boolean running;
     
     public enum Type {
-	ONLY_ADD_NEW_PHOTOS, COMPLETE_REFRESH
+	ONLY_ADD_NEW_PHOTOS, COMPLETE_REFRESH_AT_STARTUP, REFRESH_ALL_METADATA
     }
     
     private final Type type;

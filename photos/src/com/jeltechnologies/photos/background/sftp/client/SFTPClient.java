@@ -7,6 +7,8 @@ import java.util.List;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
+import com.jeltechnologies.photos.Environment;
+import com.jeltechnologies.photos.pictures.MediaType;
 import com.jeltechnologies.photos.utils.StringUtils;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
@@ -91,27 +93,22 @@ public class SFTPClient {
 		    folders.add(fileName);
 		}
 	    } else {
-		FileInfo file = new FileInfo();
-		files.add(file);
-		file.setName(fileName);
-		String absolutePath = folder + "/" + entry.getFilename();
-		
-		file.setAbsolutePath(absolutePath);
-		long lastModified = attr.getMTime() * 1000L;
-		
-		file.setLastModifiedDate(new Date(lastModified));
-		file.setSize(attr.getSize());
-		
+		String name = entry.getFilename();
+		String absolutePath = folder + "/" + name;
 		String relativeFileName = StringUtils.findAfter(absolutePath, rootFolderSlashed);
-		file.setRelativePath(relativeFileName);
+		long lastModified = attr.getMTime() * 1000L;
+		long size = attr.getSize();
+		MediaType type = Environment.getMediaType(name);
+		if (type != null) {
+		    FileInfo info = new FileInfo(name, absolutePath, relativeFileName, new Date(lastModified), size, type);
+		    files.add(info);
+		}
 	    }
 	}
-
 	for (String folderInFolder : folders) {
 	    String childFolder = folder + "/" + folderInFolder;
 	    addFiles(childFolder, files);
 	}
-
 	return files;
     }
 
@@ -120,7 +117,7 @@ public class SFTPClient {
     }
     
     public InputStream getInputStream(FileInfo fileInfo) throws Exception {
-	return sftp.get(fileInfo.getAbsolutePath());
+	return sftp.get(fileInfo.absolutePath());
     }
 
 

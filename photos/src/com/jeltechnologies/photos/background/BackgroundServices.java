@@ -46,7 +46,7 @@ public class BackgroundServices {
     private final static BackgroundServices INSTANCE = new BackgroundServices();
     private static final boolean START_BACKGROUND_TASKS = ENV.getConfig().isStartBackgroundTasksAtStartup();
     private static final File ROOT_ALBUM = Environment.INSTANCE.getConfig().getAlbumsFolder();
-    private static final boolean MOVE_FAILED_FILES = true;
+    private static final boolean MOVE_FAILED_FILES = false;
     private List<SFTPServer> sftpServers = new ArrayList<SFTPServer>();
     private Producer ongoingProducer = null;
 
@@ -134,9 +134,7 @@ public class BackgroundServices {
     }
 
     private void scheduleProducers() {
-	Producer producerCompleteRefresh = createProducer(Producer.Type.COMPLETE_REFRESH);
-	// Producer producerCompleteRefresh = createTestProducer(Producer.Type.COMPLETE_REFRESH);
-
+	Producer producerCompleteRefresh = createProducer(Producer.Type.COMPLETE_REFRESH_AT_STARTUP);
 	RefreshConfiguration refreshConfiguration = Environment.INSTANCE.getConfig().getRefreshConfiguration();
 	if (refreshConfiguration.isAllAtStarup()) {
 	    threadService.execute(producerCompleteRefresh);

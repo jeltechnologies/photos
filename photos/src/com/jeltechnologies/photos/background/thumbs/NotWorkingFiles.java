@@ -21,7 +21,7 @@ public class NotWorkingFiles implements Iterable<NotWorkingFile> {
     private static final Logger LOGGER = LoggerFactory.getLogger(NotWorkingFiles.class);
     private static final File STORAGE = Environment.INSTANCE.getConfig().getNotWorkingFilesStorage();
     private List<NotWorkingFile> files;
-    private static final String SEPERATOR = ";";
+    private static final String SEPERATOR = ",";
     private final static File FAILED_FOLDER = Environment.INSTANCE.getConfig().getFailedFolder();
 
     public NotWorkingFiles() {

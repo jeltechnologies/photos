@@ -202,11 +202,12 @@ public abstract class AbstractConsumer implements Runnable {
 	    consumption.setAdded(false);
 	}
 
-	if (consumption.isAdded() || queuedMediaFile.getType() == Producer.Type.COMPLETE_REFRESH) {
+	boolean refreshMetaDataNeeded= queuedMediaFile.getType() == Producer.Type.REFRESH_ALL_METADATA || FORCE_UPDATE_EXIF;
+	if (consumption.isAdded() || refreshMetaDataNeeded) {
 	    updateFileInPhoto();
 	    if (cacheFolderOK()) {
 		database.getMetaData(consumption.getPhoto());
-		if (consumption.isAdded() || consumption.getMetaData() == null || FORCE_UPDATE_EXIF) {
+		if (consumption.isAdded() || consumption.getMetaData() == null || refreshMetaDataNeeded) {
 		    if (EXIFTOOL_CONFIGURED) {
 			updateExifMetaData(photoFile);
 		    }
