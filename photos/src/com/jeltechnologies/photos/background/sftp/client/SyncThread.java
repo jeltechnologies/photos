@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import com.jeltechnologies.photos.background.thumbs.SingleMediaProducer;
 import com.jeltechnologies.photos.datatypes.usermodel.Role;
 import com.jeltechnologies.photos.datatypes.usermodel.RoleModel;
-import com.jeltechnologies.photos.utils.FileUtils;
 import com.jeltechnologies.photos.utils.StringUtils;
 
 public class SyncThread implements Runnable, SyncThreadMBean {
@@ -42,6 +41,10 @@ public class SyncThread implements Runnable, SyncThreadMBean {
     private final String relativeDestinationRoot;
 
     private final static Role ROLE = RoleModel.ROLE_ADMIN;
+    
+    private DateFormat logDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    private final boolean COPY_FILES = true;
 
     private record FileDifference(String reason, FileInfo remoteFile, File localFile) {
     };
@@ -84,10 +87,6 @@ public class SyncThread implements Runnable, SyncThreadMBean {
 	}
 	Thread.currentThread().setName(oldThreadName);
     }
-
-    private DateFormat logDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-    private final boolean COPY_FILES = true;
 
     private void copyMissingFiles(List<FileInfo> files) throws Exception {
 	SingleMediaProducer cacheProducer = new SingleMediaProducer(ROLE);
@@ -155,8 +154,16 @@ public class SyncThread implements Runnable, SyncThreadMBean {
 	} else {
 	    LOGGER.info(threadName + " no new files found");
 	}
-
-	FileUtils.writeTextFile("c:\\tmp\\synclog.csv", logLines);
+	if (LOGGER.isInfoEnabled()) {
+	    String logHeading = "Synchonization, files that were copied: ";
+	    if (logLines.isEmpty()) {
+		logHeading += " nothing to do, files up to date.";
+	    }
+	    LOGGER.info(logHeading);
+	    for (String line : logLines) {
+		LOGGER.info("  " + line);
+	    }
+	}
     }
 
     private boolean isTheSameMinute(long one, long two) {

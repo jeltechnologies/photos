@@ -31,7 +31,6 @@ public class ShareServlet extends BaseServlet {
     protected static final String SESSION_KEY = SharedFile.class.getName();
 
     
-    
     private void respondSharedPhoto(HttpServletRequest request, HttpServletResponse response, Photo photo, boolean originalQuality) throws Exception {
 	switch (photo.getType()) {
 	    case PHOTO: {
